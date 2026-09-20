@@ -51,9 +51,9 @@ def test_validate_valid_full_length_script(sample_script_data):
 
 
 def test_validate_script_too_short_fails(sample_script_data):
-    """Scripts under min_words (900) fail when enforce_full_length is True."""
+    """Scripts under min_words (950) fail when enforce_full_length is True."""
     settings = get_settings("config/config.yaml")
-    # 20 scenes * 30 words = 600 words (< 900)
+    # 20 scenes * 30 words = 600 words (< 950)
     short_data = _create_full_length_script_data(sample_script_data, word_count_per_scene=30, scene_count=20)
     with pytest.raises(ScriptValidationError) as exc:
         validate_script(short_data, settings, enforce_full_length=True)
@@ -61,13 +61,13 @@ def test_validate_script_too_short_fails(sample_script_data):
 
 
 def test_validate_script_too_long_fails(sample_script_data):
-    """Scripts over max_words (1200) fail when enforce_full_length is True."""
+    """Scripts over max_words (1150) fail when enforce_full_length is True."""
     settings = get_settings("config/config.yaml")
-    # 30 scenes * 45 words = 1350 words (> 1200)
+    # 30 scenes * 45 words = 1350 words (> 1150)
     long_data = _create_full_length_script_data(sample_script_data, word_count_per_scene=45, scene_count=30)
     with pytest.raises(ScriptValidationError) as exc:
         validate_script(long_data, settings, enforce_full_length=True)
-    assert "outside allowed range [900, 1200]" in str(exc.value)
+    assert "outside allowed range [950, 1150]" in str(exc.value)
 
 
 def test_validate_too_few_scenes_fails(sample_script_data):

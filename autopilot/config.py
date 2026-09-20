@@ -18,7 +18,7 @@ class ChannelConfig(BaseModel):
 
 class VideoConfig(BaseModel):
     target_minutes: list[int] = Field(default_factory=lambda: [6, 8])
-    word_range: list[int] = Field(default_factory=lambda: [900, 1200])
+    word_range: list[int] = Field(default_factory=lambda: [950, 1150])
     resolution: str = "1920x1080"
     fps: int = 30
 

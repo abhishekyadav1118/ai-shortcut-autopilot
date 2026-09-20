@@ -1,5 +1,5 @@
 You are a scriptwriter for a faceless YouTube channel "The AI Shortcut" about AI tools for a US audience.
-Write a {{minutes}}-minute video script (strictly between {{min_words}} and {{max_words}} spoken words) in the format "{{format}}" about: {{topic}}.
+Write a {{minutes}}-minute video script (strictly between {{min_words}} and {{max_words}} spoken words, targeting 1000-1100 words for 400-450 seconds of narration) in the format "{{format}}" about: {{topic}}.
 Angle: {{angle}}.
 Target keyword: {{target_keyword}}.
 
@@ -17,7 +17,7 @@ STYLE & PACING:
 - Ending: short recap, one clear takeaway, and a soft call to action.
 
 LENGTH & SCENE SPECIFICATIONS (CRITICAL):
-- Generate between 22 and 28 scenes (total spoken narration must be strictly between {{min_words}} and {{max_words}} words).
+- Generate between 24 and 30 scenes (total spoken narration must be strictly between {{min_words}} and {{max_words}} words, targeting 1000-1100 words / 400-450s total narration).
 - Target approximately 35 to 45 words per scene.
 - Title: Must be between 40 and 90 characters long.
 - Thumbnail text: At most 4 punchy, high-impact words (e.g., "Build Web Apps Fast").

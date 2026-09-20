@@ -191,3 +191,73 @@ def test_generate_and_validate_script_mocked(sample_script_data):
     assert script.title == sample_script_data["title"]
     assert fact_res.factcheck_ran is True
     assert fact_res.unsupported_count == 0
+
+
+def test_generate_retries_when_word_count_outside_950_1150(sample_script_data):
+    """When generated script has word count outside 950-1150, generator retries and succeeds on 2nd attempt."""
+    import copy
+    settings = get_settings("config/config.yaml")
+    mock_llm = MagicMock()
+
+    # Attempt 1: 904 words (too short for 950-1150 target)
+    short_script_data = copy.deepcopy(sample_script_data)
+    short_script_data["scenes"] = [
+        {
+            "id": i,
+            "narration": " ".join(["word" + str(w) for w in range(35)]),
+            "visual_type": "card",
+            "visual_query": "tech",
+            "on_screen_text": f"Point {i}",
+            "bullets": ["A", "B"],
+            "source_ids": [1],
+        }
+        for i in range(1, 26)  # 25 scenes * 35 words = 875 words (< 950)
+    ]
+
+    # Attempt 2: 1050 words (25 scenes * 42 words = 1050 words, within 950-1150)
+    good_script_data = copy.deepcopy(sample_script_data)
+    good_script_data["scenes"] = [
+        {
+            "id": i,
+            "narration": " ".join(["word" + str(w) for w in range(42)]),
+            "visual_type": "card",
+            "visual_query": "tech",
+            "on_screen_text": f"Point {i}",
+            "bullets": ["A", "B"],
+            "source_ids": [1],
+        }
+        for i in range(1, 26)
+    ]
+
+    factcheck_response = {
+        "claims": [{"text": "Claim", "status": "SUPPORTED", "scene_id": 1}],
+        "unsupported_count": 0,
+        "corrected_script": None,
+    }
+
+    mock_llm.generate_json.side_effect = [
+        short_script_data,   # 1st attempt generation (875 words)
+        factcheck_response,  # 1st attempt factcheck
+        good_script_data,    # 2nd attempt generation (1050 words)
+        factcheck_response,  # 2nd attempt factcheck
+    ]
+
+    topic = Topic(
+        title="AI Code Assistants and Web Development: Build Web Apps Fast",
+        format="how_to_walkthrough",
+        angle="Build full web tools inside modern AI workspaces.",
+        target_keyword="ai coding tools",
+        source_texts=["Official documentation on modern AI developer workspaces."],
+    )
+
+    script, fact_res = generate_and_validate_script(
+        topic=topic,
+        settings=settings,
+        llm=mock_llm,
+        enforce_full_length=True,
+    )
+
+    # 1st attempt failed word count validation, 2nd attempt succeeded
+    assert sum(len(s.narration.split()) for s in script.scenes) == 1050
+    assert mock_llm.generate_json.call_count == 4
+
