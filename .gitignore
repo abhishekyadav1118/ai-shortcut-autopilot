@@ -29,6 +29,8 @@ wheels/
 .env.*.local
 client_secret*.json
 token.json
+*token*.json
+*.token
 
 # Pipeline output & temporary scratch files
 out/
