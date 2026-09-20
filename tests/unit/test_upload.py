@@ -400,3 +400,25 @@ def test_get_authenticated_service_missing_credentials_raises():
         pytest.raises(RuntimeError, match="No valid YouTube credentials found"),
     ):
         get_authenticated_service()
+
+
+def test_get_authenticated_service_from_env_token_file(monkeypatch, tmp_path):
+    """Loads credentials from YOUTUBE_TOKEN_FILE if specified in env."""
+    mock_settings = MagicMock()
+    mock_settings.youtube_refresh_token = ""
+    token_file = tmp_path / "custom_token.json"
+    token_file.write_text('{"token": "abc"}', encoding="utf-8")
+    monkeypatch.setenv("YOUTUBE_TOKEN_FILE", str(token_file))
+
+    with (
+        patch("autopilot.upload.youtube.get_settings", return_value=mock_settings),
+        patch("google.oauth2.credentials.Credentials.from_authorized_user_file") as mock_from_file,
+        patch("autopilot.upload.youtube.build") as mock_build,
+    ):
+        get_authenticated_service()
+        mock_from_file.assert_called_once_with(
+            str(token_file),
+            ["https://www.googleapis.com/auth/youtube.upload", "https://www.googleapis.com/auth/youtube.force-ssl"],
+        )
+        mock_build.assert_called_once()
+

@@ -26,3 +26,12 @@ def test_settings_env_override(monkeypatch):
     settings = get_settings("config/config.yaml")
     assert settings.llm_api_key == "test_gemini_key_12345"
     assert settings.pexels_api_key == "test_pexels_key_67890"
+
+
+def test_settings_secret_paths_env_override(monkeypatch):
+    monkeypatch.setenv("YOUTUBE_CLIENT_SECRET_FILE", "custom_secret.json")
+    monkeypatch.setenv("YOUTUBE_TOKEN_FILE", "custom_token.json")
+    settings = get_settings("config/config.yaml")
+    assert settings.youtube_client_secret_file == "custom_secret.json"
+    assert settings.youtube_token_file == "custom_token.json"
+

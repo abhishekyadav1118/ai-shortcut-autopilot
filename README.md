@@ -58,6 +58,8 @@ cp .env.example .env
 | `YOUTUBE_CLIENT_ID` | YouTube API OAuth | Google Cloud Console -> APIs & Services -> Credentials (Desktop App) |
 | `YOUTUBE_CLIENT_SECRET` | YouTube API OAuth | Google Cloud Console -> APIs & Services -> Credentials |
 | `YOUTUBE_REFRESH_TOKEN` | YouTube runtime token | Generated via `python -m autopilot auth` |
+| `YOUTUBE_CLIENT_SECRET_FILE` | OAuth client secret file path | Path to `client_secret.json` (default: `client_secret.json`) |
+| `YOUTUBE_TOKEN_FILE` | OAuth token storage file path | Path to `token.json` (default: `token.json`) |
 | `TELEGRAM_BOT_TOKEN` | (Optional) Run alerts | Telegram [@BotFather](https://t.me/botfather) |
 | `TELEGRAM_CHAT_ID` | (Optional) Alert chat | Your Telegram user/channel ID |
 

@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import argparse
 import http.client
+import os
 import random
 import socket
 import sys
@@ -146,23 +147,29 @@ def get_authenticated_service(credentials: Any | None = None) -> Resource:
         )
         return build("youtube", "v3", credentials=creds)
 
-    # 2. Local token file (e.g. token.json)
-    token_file = Path("token.json")
-    if token_file.exists():
-        logger.info("Initializing YouTube credentials from local token file.")
-        creds = Credentials.from_authorized_user_file(str(token_file), YOUTUBE_SCOPES)
+    # 2. Local token file (from YOUTUBE_TOKEN_FILE env var or settings, falling back to token.json)
+    token_file_path = Path(
+        os.environ.get("YOUTUBE_TOKEN_FILE")
+        or getattr(settings, "youtube_token_file", "token.json")
+    )
+    if token_file_path.exists():
+        logger.info("Initializing YouTube credentials from token file: %s", token_file_path)
+        creds = Credentials.from_authorized_user_file(str(token_file_path), YOUTUBE_SCOPES)
         return build("youtube", "v3", credentials=creds)
 
-    # 3. Local client_secret.json (Interactive flow)
-    secret_file = Path("client_secret.json")
-    if secret_file.exists():
-        logger.info("Running OAuth installed app flow with client_secret.json.")
+    # 3. Local client secret file (from YOUTUBE_CLIENT_SECRET_FILE env var or settings, falling back to client_secret.json)
+    secret_file_path = Path(
+        os.environ.get("YOUTUBE_CLIENT_SECRET_FILE")
+        or getattr(settings, "youtube_client_secret_file", "client_secret.json")
+    )
+    if secret_file_path.exists():
+        logger.info("Running OAuth installed app flow with client secret file: %s", secret_file_path)
         from google_auth_oauthlib.flow import InstalledAppFlow
 
-        flow = InstalledAppFlow.from_client_secrets_file(str(secret_file), YOUTUBE_SCOPES)
+        flow = InstalledAppFlow.from_client_secrets_file(str(secret_file_path), YOUTUBE_SCOPES)
         creds = flow.run_local_server(port=0)
         # Save token for subsequent runs
-        token_file.write_text(creds.to_json(), encoding="utf-8")
+        token_file_path.write_text(creds.to_json(), encoding="utf-8")
         return build("youtube", "v3", credentials=creds)
 
     raise RuntimeError(

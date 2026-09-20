@@ -70,6 +70,8 @@ class AppSettings(BaseSettings):
     youtube_client_id: str = Field(default="", alias="YOUTUBE_CLIENT_ID")
     youtube_client_secret: str = Field(default="", alias="YOUTUBE_CLIENT_SECRET")
     youtube_refresh_token: str = Field(default="", alias="YOUTUBE_REFRESH_TOKEN")
+    youtube_client_secret_file: str = Field(default="client_secret.json", alias="YOUTUBE_CLIENT_SECRET_FILE")
+    youtube_token_file: str = Field(default="token.json", alias="YOUTUBE_TOKEN_FILE")
     telegram_bot_token: str = Field(default="", alias="TELEGRAM_BOT_TOKEN")
     telegram_chat_id: str = Field(default="", alias="TELEGRAM_CHAT_ID")
 
