@@ -216,7 +216,13 @@ def upload_subtitles(
     language: str = "en",
     name: str = "English",
 ) -> bool:
-    """Upload an SRT caption file to a YouTube video.
+    """Upload an SRT caption file to a YouTube video after updating video default languages.
+
+    1. Calls videos().list(part="snippet", id=video_id) to read existing metadata.
+    2. Calls videos().update(part="snippet") to set snippet.defaultLanguage and
+       snippet.defaultAudioLanguage to language, keeping title, description, tags, categoryId unchanged.
+    3. Calls captions().insert(part="snippet") with videoId, language, name, isDraft=False.
+    4. Calls captions().list(part="snippet", videoId=video_id) and logs track language and status.
 
     Returns True on success, False on error.
     """
@@ -225,22 +231,49 @@ def upload_subtitles(
         logger.warning("Subtitles file %s does not exist or is empty. Skipping.", sub_path)
         return False
 
-    logger.info("Uploading subtitles (%s) for video %s...", sub_path.name, video_id)
-    caption_body = {
-        "snippet": {
-            "videoId": video_id,
-            "language": language,
-            "name": name,
-            "isDraft": False,
-        }
-    }
-    media = MediaFileUpload(
-        str(sub_path),
-        mimetype="application/x-subrip",
-        resumable=True,
-    )
-
     try:
+        # Step 1: Read existing snippet with videos().list and update default languages
+        list_resp = youtube.videos().list(
+            part="snippet",
+            id=video_id,
+        ).execute()
+
+        items = list_resp.get("items", [])
+        if items:
+            snippet = items[0].get("snippet", {})
+            snippet["defaultLanguage"] = language
+            snippet["defaultAudioLanguage"] = language
+            youtube.videos().update(
+                part="snippet",
+                body={
+                    "id": video_id,
+                    "snippet": snippet,
+                },
+            ).execute()
+            logger.info(
+                "Updated video %s defaultLanguage and defaultAudioLanguage to %r.",
+                video_id,
+                language,
+            )
+        else:
+            logger.warning("Video %s snippet not found during language update.", video_id)
+
+        # Step 2: In captions().insert send snippet with videoId, language, name, isDraft=False
+        logger.info("Uploading subtitles (%s) for video %s...", sub_path.name, video_id)
+        caption_body = {
+            "snippet": {
+                "videoId": video_id,
+                "language": language,
+                "name": name,
+                "isDraft": False,
+            }
+        }
+        media = MediaFileUpload(
+            str(sub_path),
+            mimetype="application/x-subrip",
+            resumable=True,
+        )
+
         request = youtube.captions().insert(
             part="snippet",
             body=caption_body,
@@ -248,6 +281,26 @@ def upload_subtitles(
         )
         _resumable_upload(request)
         logger.info("Successfully uploaded captions for video %s.", video_id)
+
+        # Step 3: Call captions().list(part="snippet", videoId=video_id) and log track language and status
+        cap_list_resp = youtube.captions().list(
+            part="snippet",
+            videoId=video_id,
+        ).execute()
+
+        for track in cap_list_resp.get("items", []):
+            snip = track.get("snippet", {})
+            t_lang = snip.get("language")
+            t_status = snip.get("status")
+            t_name = snip.get("name")
+            logger.info(
+                "Caption track verified: videoId=%s language=%s name=%s status=%s",
+                video_id,
+                t_lang,
+                t_name,
+                t_status,
+            )
+
         return True
     except Exception as e:
         logger.error("Failed to upload captions for video %s: %s", video_id, e)
@@ -263,12 +316,13 @@ def upload_video(
     privacy_status: str = "private",
     category_id: str = "28",
     made_for_kids: bool = False,
+    language: str = "en",
     dry_run: bool = False,
     credentials: Any | None = None,
 ) -> UploadResult:
     """Upload a video and optional subtitles to YouTube.
 
-    Default privacy is PRIVATE.
+    Default privacy is PRIVATE. Default language is 'en'.
     If dry_run is True, validates all inputs and returns without contacting the API.
     """
     if tags is None:
@@ -288,10 +342,11 @@ def upload_video(
     if dry_run:
         logger.info("[DRY-RUN] Inputs validated successfully. Skipping API upload.")
         logger.info(
-            "[DRY-RUN] Video: %s | Title: %s | Privacy: %s",
+            "[DRY-RUN] Video: %s | Title: %s | Privacy: %s | Language: %s",
             Path(video_path).name,
             title,
             privacy_status,
+            language,
         )
         fake_id = "dry_run_sample_id_123"
         return UploadResult(
@@ -313,7 +368,8 @@ def upload_video(
             "description": description,
             "tags": tags,
             "categoryId": category_id,
-            "defaultLanguage": "en",
+            "defaultLanguage": language,
+            "defaultAudioLanguage": language,
         },
         "status": {
             "privacyStatus": privacy_status.lower(),
@@ -330,9 +386,10 @@ def upload_video(
     )
 
     logger.info(
-        "Starting resumable upload for '%s' (privacy: %s)...",
+        "Starting resumable upload for '%s' (privacy: %s, language: %s)...",
         title,
         privacy_status,
+        language,
     )
 
     try:
@@ -349,7 +406,14 @@ def upload_video(
         # 5. Upload subtitles if provided
         caption_ok = False
         if subtitles_path is not None and video_id:
-            caption_ok = upload_subtitles(youtube, video_id, subtitles_path)
+            caption_name = "English" if language == "en" else language.upper()
+            caption_ok = upload_subtitles(
+                youtube,
+                video_id,
+                subtitles_path,
+                language=language,
+                name=caption_name,
+            )
 
         return UploadResult(
             success=True,
@@ -416,6 +480,12 @@ def main() -> None:
         help="Privacy status (default: private)",
     )
     parser.add_argument(
+        "--language",
+        type=str,
+        default="en",
+        help="Language code for video and subtitles (default: en)",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="Validate inputs without calling YouTube API",
@@ -430,6 +500,7 @@ def main() -> None:
         tags=args.tags,
         subtitles_path=args.subtitles,
         privacy_status=args.privacy,
+        language=args.language,
         dry_run=args.dry_run,
     )
 

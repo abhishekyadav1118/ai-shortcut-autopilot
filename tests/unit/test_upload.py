@@ -158,6 +158,7 @@ def test_upload_video_dry_run_does_not_call_api(dummy_video: Path, dummy_subtitl
             tags=["ai", "test"],
             subtitles_path=dummy_subtitles,
             privacy_status="private",
+            language="en",
             dry_run=True,
         )
 
@@ -176,7 +177,7 @@ def test_upload_video_dry_run_does_not_call_api(dummy_video: Path, dummy_subtitl
 
 
 def test_upload_video_mocked_success(dummy_video: Path):
-    """Mocked YouTube API upload returns expected video ID and privacy status."""
+    """Mocked YouTube API upload returns expected video ID and sets default languages."""
     fake_service = MagicMock()
     fake_request = MagicMock()
     fake_service.videos().insert.return_value = fake_request
@@ -193,6 +194,7 @@ def test_upload_video_mocked_success(dummy_video: Path):
             description="Test Description",
             tags=["tag1", "tag2"],
             privacy_status="private",
+            language="en",
             dry_run=False,
         )
 
@@ -207,14 +209,107 @@ def test_upload_video_mocked_success(dummy_video: Path):
         call_kwargs = fake_service.videos().insert.call_args.kwargs
         assert call_kwargs["part"] == "snippet,status"
         assert call_kwargs["body"]["snippet"]["title"] == "Test Title"
+        assert call_kwargs["body"]["snippet"]["defaultLanguage"] == "en"
+        assert call_kwargs["body"]["snippet"]["defaultAudioLanguage"] == "en"
         assert call_kwargs["body"]["status"]["privacyStatus"] == "private"
         mock_resumable.assert_called_once_with(fake_request)
 
 
-def test_upload_video_with_subtitles_mocked(dummy_video: Path, dummy_subtitles: Path):
-    """Mocked upload invokes upload_subtitles when subtitles_path is provided."""
+def test_upload_subtitles_language_handling_and_verification(dummy_subtitles: Path):
+    """upload_subtitles calls videos().list -> videos().update -> captions().insert -> captions().list."""
     fake_service = MagicMock()
-    fake_response = {"id": "yt_sub_123"}
+
+    # 1. Mock videos().list() response
+    list_mock = MagicMock()
+    list_mock.execute.return_value = {
+        "items": [
+            {
+                "id": "yt_vid_abc",
+                "snippet": {
+                    "title": "Existing Title",
+                    "description": "Existing Description",
+                    "tags": ["existing_tag"],
+                    "categoryId": "28",
+                },
+            }
+        ]
+    }
+    fake_service.videos().list.return_value = list_mock
+
+    # 2. Mock videos().update() response
+    update_mock = MagicMock()
+    fake_service.videos().update.return_value = update_mock
+
+    # 3. Mock captions().insert() request
+    cap_insert_req = MagicMock()
+    fake_service.captions().insert.return_value = cap_insert_req
+
+    # 4. Mock captions().list() response
+    cap_list_mock = MagicMock()
+    cap_list_mock.execute.return_value = {
+        "items": [
+            {
+                "snippet": {
+                    "language": "en",
+                    "name": "English",
+                    "status": "serving",
+                }
+            }
+        ]
+    }
+    fake_service.captions().list.return_value = cap_list_mock
+
+    with patch("autopilot.upload.youtube._resumable_upload", return_value={"id": "cap_123"}):
+        success = upload_subtitles(
+            youtube=fake_service,
+            video_id="yt_vid_abc",
+            subtitles_path=dummy_subtitles,
+            language="en",
+            name="English",
+        )
+
+        assert success is True
+
+        # Verify Step 1: videos().list called with part='snippet', id='yt_vid_abc'
+        fake_service.videos().list.assert_called_once_with(
+            part="snippet",
+            id="yt_vid_abc",
+        )
+
+        # Verify Step 1 (cont): videos().update called with updated defaultLanguage & defaultAudioLanguage while keeping existing metadata
+        fake_service.videos().update.assert_called_once()
+        update_kwargs = fake_service.videos().update.call_args.kwargs
+        assert update_kwargs["part"] == "snippet"
+        assert update_kwargs["body"]["id"] == "yt_vid_abc"
+        updated_snip = update_kwargs["body"]["snippet"]
+        assert updated_snip["title"] == "Existing Title"
+        assert updated_snip["description"] == "Existing Description"
+        assert updated_snip["tags"] == ["existing_tag"]
+        assert updated_snip["categoryId"] == "28"
+        assert updated_snip["defaultLanguage"] == "en"
+        assert updated_snip["defaultAudioLanguage"] == "en"
+
+        # Verify Step 2: captions().insert called with videoId, language='en', name='English', isDraft=False
+        fake_service.captions().insert.assert_called_once()
+        cap_kwargs = fake_service.captions().insert.call_args.kwargs
+        assert cap_kwargs["part"] == "snippet"
+        cap_snip = cap_kwargs["body"]["snippet"]
+        assert cap_snip["videoId"] == "yt_vid_abc"
+        assert cap_snip["language"] == "en"
+        assert cap_snip["name"] == "English"
+        assert cap_snip["isDraft"] is False
+
+        # Verify Step 3: captions().list called with part='snippet', videoId='yt_vid_abc'
+        fake_service.captions().list.assert_called_once_with(
+            part="snippet",
+            videoId="yt_vid_abc",
+        )
+
+
+def test_upload_video_custom_language(dummy_video: Path, dummy_subtitles: Path):
+    """Custom language parameter is passed to video insert and upload_subtitles."""
+    fake_service = MagicMock()
+    fake_response = {"id": "yt_lang_456"}
 
     with (
         patch("autopilot.upload.youtube.get_authenticated_service", return_value=fake_service),
@@ -223,30 +318,28 @@ def test_upload_video_with_subtitles_mocked(dummy_video: Path, dummy_subtitles: 
     ):
         result = upload_video(
             video_path=dummy_video,
-            title="Video with Subtitles",
-            description="Description",
+            title="Spanish Video",
+            description="Spanish Description",
             subtitles_path=dummy_subtitles,
-            privacy_status="private",
+            language="es",
         )
 
         assert result.success is True
         assert result.caption_uploaded is True
-        mock_sub_upload.assert_called_once_with(fake_service, "yt_sub_123", dummy_subtitles)
 
+        # Verify defaultLanguage and defaultAudioLanguage set to 'es'
+        insert_kwargs = fake_service.videos().insert.call_args.kwargs
+        assert insert_kwargs["body"]["snippet"]["defaultLanguage"] == "es"
+        assert insert_kwargs["body"]["snippet"]["defaultAudioLanguage"] == "es"
 
-def test_upload_subtitles_success(dummy_subtitles: Path):
-    """upload_subtitles constructs correct captions insert request."""
-    fake_service = MagicMock()
-    fake_request = MagicMock()
-    fake_service.captions().insert.return_value = fake_request
-
-    with patch("autopilot.upload.youtube._resumable_upload", return_value={"id": "cap_123"}):
-        success = upload_subtitles(fake_service, "yt_vid_abc", dummy_subtitles)
-        assert success is True
-        fake_service.captions().insert.assert_called_once()
-        body = fake_service.captions().insert.call_args.kwargs["body"]
-        assert body["snippet"]["videoId"] == "yt_vid_abc"
-        assert body["snippet"]["language"] == "en"
+        # Verify upload_subtitles was called with language='es' and name='ES'
+        mock_sub_upload.assert_called_once_with(
+            fake_service,
+            "yt_lang_456",
+            dummy_subtitles,
+            language="es",
+            name="ES",
+        )
 
 
 def test_upload_video_handles_api_exception(dummy_video: Path):
