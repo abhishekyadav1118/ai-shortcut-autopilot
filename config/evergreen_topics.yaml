@@ -1,0 +1,36 @@
+# Evergreen topic fallbacks if daily news is thin
+evergreen_topics:
+  - id: "evergreen-001"
+    title: "10 Free AI Tools Every Content Creator Should Use in 2025"
+    format: "top_n_list"
+    target_keyword: "free ai tools"
+    angle: "Overlooked free AI tools that replace expensive monthly subscriptions for video, audio, and graphics."
+    source_summary: "Comprehensive guide to top open and free-tier generative tools: Whisper for transcription, Stable Audio for music, Claude for long-form synthesis, and Upscayl for image upscaling."
+
+  - id: "evergreen-002"
+    title: "Local LLMs vs Cloud AI: Complete Beginner's Setup Guide (Ollama & LM Studio)"
+    format: "how_to_walkthrough"
+    target_keyword: "local llm setup"
+    angle: "How to run powerful private AI models completely offline on your own computer with zero subscription fees."
+    source_summary: "Step by step walkthrough configuring Ollama and LM Studio with open models like Llama 3 and Mistral, privacy benefits, and hardware requirements."
+
+  - id: "evergreen-003"
+    title: "Prompt Engineering in 2025: 5 Frameworks That Actually Work"
+    format: "how_to_walkthrough"
+    target_keyword: "prompt engineering guide"
+    angle: "Cut through hype with 5 battle-tested prompting techniques proven to increase AI output accuracy."
+    source_summary: "Systematic review of Chain-of-Thought, Few-Shot prompting, Role-Task-Constraint framing, and self-consistency techniques."
+
+  - id: "evergreen-004"
+    title: "Claude 3.5 Sonnet vs GPT-4o: Which AI is Actually Better for Daily Work?"
+    format: "tool_comparison"
+    target_keyword: "claude vs gpt-4o"
+    angle: "Real-world benchmark comparison testing coding, writing, reasoning, and multimodal document handling."
+    source_summary: "Side-by-side practical breakdown of artifact handling, token context windows, coding speed, and reasoning strengths."
+
+  - id: "evergreen-005"
+    title: "Top 7 Open Source AI Video Generators You Can Test Today"
+    format: "top_n_list"
+    target_keyword: "open source ai video"
+    angle: "The best open weights text-to-video and image-to-video models challenging proprietary tools like Sora and Runway."
+    source_summary: "Technical overview of CogVideoX, AnimateDiff, Open-Sora, and Stable Video Diffusion capabilities, hardware requirements, and quality limits."

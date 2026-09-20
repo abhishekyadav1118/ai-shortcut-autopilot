@@ -1,0 +1,32 @@
+# RSS and Web Feeds for AI Tool candidates
+feeds:
+  - name: "OpenAI News"
+    url: "https://openai.com/news/rss.xml"
+    category: "official_blog"
+  - name: "Google DeepMind Blog"
+    url: "https://deepmind.google/blog/rss.xml"
+    category: "official_blog"
+  - name: "Anthropic News"
+    url: "https://www.anthropic.com/feed.xml"
+    category: "official_blog"
+  - name: "Hugging Face Blog"
+    url: "https://huggingface.co/blog/feed.xml"
+    category: "community_platform"
+  - name: "VentureBeat AI"
+    url: "https://venturebeat.com/category/ai/feed/"
+    category: "tech_news"
+  - name: "TechCrunch AI"
+    url: "https://techcrunch.com/category/artificial-intelligence/feed/"
+    category: "tech_news"
+  - name: "The Verge AI"
+    url: "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+    category: "tech_news"
+  - name: "MIT Technology Review AI"
+    url: "https://www.technologyreview.com/feed/"
+    category: "analysis"
+
+hacker_news:
+  enabled: true
+  query: "AI OR LLM OR GPT OR Claude OR Gemini OR open-source"
+  min_points: 30
+  max_age_hours: 72

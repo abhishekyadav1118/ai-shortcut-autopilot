@@ -1,0 +1,31 @@
+channel:
+  niche: "AI tools tutorials and explainers"
+  language: "en"
+  category_id: "28"          # Science & Technology (YouTube Data API v3 category)
+  made_for_kids: false
+video:
+  target_minutes: [6, 8]
+  word_range: [900, 1200]
+  resolution: "1920x1080"
+  fps: 30
+schedule:
+  publish_local_time: "10:00"
+  publish_tz: "America/New_York"   # Timezone-aware UTC computation handling DST
+mode: "review"                      # review | auto | package
+llm:
+  provider: "gemini"                # gemini | anthropic
+  model: "gemini-2.5-flash"         # Gemini 2.5 Flash / claude-3-5-sonnet-20241022
+  temperature: 0.7
+tts:
+  provider: "edge"
+  voice: "en-US-AndrewNeural"       # Free Microsoft Edge TTS voice
+  rate: "+0%"
+visuals:
+  stock_provider: "pexels"
+  use_screenshots: false            # Optional Playwright screenshots
+music:
+  volume_db: -24
+  loudness_target_lufs: -14
+quality:
+  max_regenerations: 2
+  max_title_similarity: 0.6         # difflib similarity ratio threshold
