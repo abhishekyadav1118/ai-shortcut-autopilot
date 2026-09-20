@@ -36,6 +36,6 @@ def test_script_model_parsing(sample_script_data):
     script = Script(**sample_script_data)
     assert len(script.scenes) == 10
     assert len(script.chapters) == 3
-    assert script.chapters[0].title == "Introduction to Artifacts"
+    assert script.chapters[0].title == "Introduction to AI Workspaces"
     assert script.disclosures.ai_voice is True
-    assert script.thumbnail_text == "CLAUDE ARTIFACTS GUIDE"
+    assert script.thumbnail_text == "BUILD APPS WITH AI"

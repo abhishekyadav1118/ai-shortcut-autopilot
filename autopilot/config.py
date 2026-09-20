@@ -9,6 +9,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class ChannelConfig(BaseModel):
+    name: str = "The AI Shortcut"
     niche: str = "AI tools tutorials and explainers"
     language: str = "en"
     category_id: str = "28"

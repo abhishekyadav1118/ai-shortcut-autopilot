@@ -1,23 +1,23 @@
 {
-  "title": "Claude 3.5 Sonnet Artifacts: How to Build Web Apps in Minutes",
-  "hook": "What if you could build and test complete interactive web tools directly inside your AI chat without writing a single line of boilerplate code?",
+  "title": "AI Code Assistants and Web Development: Build Web Apps Fast",
+  "hook": "What if you could build and test complete interactive web tools directly inside an AI workspace without writing boilerplate code?",
   "scenes": [
     {
       "id": 1,
-      "narration": "What if you could build and test complete interactive web apps directly inside your AI chat without writing a single line of boilerplate code?",
+      "narration": "What if you could build and test complete interactive web apps directly inside an AI workspace without writing boilerplate code?",
       "visual_type": "card",
       "visual_query": "ai developer dashboard",
-      "on_screen_text": "Claude 3.5 Sonnet",
+      "on_screen_text": "Modern AI Workspaces",
       "bullets": [
-        "Interactive Artifacts",
+        "Interactive Coding Workspaces",
         "Instant React & HTML Preview",
-        "Zero Setup Required"
+        "Zero Boilerplate Setup"
       ],
       "source_ids": [1]
     },
     {
       "id": 2,
-      "narration": "Anthropic recently introduced Artifacts in Claude 3.5 Sonnet, transforming simple conversational text into a dedicated dynamic side-by-side workspace.",
+      "narration": "Modern AI developer assistants are transforming simple conversational prompts into dedicated dynamic side-by-side coding environments.",
       "visual_type": "stock",
       "visual_query": "computer programming code screen",
       "on_screen_text": "Side-by-Side Workspace",
@@ -26,7 +26,7 @@
     },
     {
       "id": 3,
-      "narration": "Instead of burying lengthy code snippets in chat history, Artifacts render live JavaScript, SVG diagrams, and React components right on your screen.",
+      "narration": "Instead of burying lengthy code snippets in static text blocks, modern tools render live JavaScript, SVG diagrams, and React components right on your screen.",
       "visual_type": "stock",
       "visual_query": "web design interface mockups",
       "on_screen_text": "Live Interactive Previews",
@@ -35,12 +35,12 @@
     },
     {
       "id": 4,
-      "narration": "Let us explore exactly how you can start using this feature today, step by step.",
+      "narration": "Let us explore exactly how you can start using these interactive AI workspaces today, step by step.",
       "visual_type": "card",
       "visual_query": "technology tutorial steps",
       "on_screen_text": "Step-by-Step Walkthrough",
       "bullets": [
-        "Enable Artifacts",
+        "Open Workspace",
         "Design with Prompts",
         "Export and Iterate"
       ],
@@ -48,7 +48,7 @@
     },
     {
       "id": 5,
-      "narration": "To begin, open Claude dot A I and toggle the Artifacts option on in the Feature Preview settings.",
+      "narration": "To begin, open your chosen AI workspace and enable interactive code preview in the project settings.",
       "visual_type": "stock",
       "visual_query": "person typing keyboard laptop",
       "on_screen_text": "Enable Feature Preview",
@@ -57,7 +57,7 @@
     },
     {
       "id": 6,
-      "narration": "Next, type a concrete prompt such as build a responsive mortgage calculator with interactive sliders.",
+      "narration": "Next, type a concrete prompt such as build a responsive mortgage calculator with interactive sliders and clean CSS.",
       "visual_type": "stock",
       "visual_query": "calculator financial charts",
       "on_screen_text": "Prompt Example",
@@ -66,7 +66,7 @@
     },
     {
       "id": 7,
-      "narration": "Within seconds, Claude generates the complete application on the right panel while keeping the dialogue open on the left.",
+      "narration": "Within seconds, the AI generates the complete working application on the right panel while keeping the dialogue open on the left.",
       "visual_type": "card",
       "visual_query": "dual screen coding",
       "on_screen_text": "Real-Time Generation",
@@ -78,7 +78,7 @@
     },
     {
       "id": 8,
-      "narration": "You can immediately interact with the buttons, adjust variables, or ask Claude to iterate and add dark mode support.",
+      "narration": "You can immediately interact with the buttons, adjust variables, or ask the model to iterate and add dark mode support.",
       "visual_type": "stock",
       "visual_query": "user testing software ui",
       "on_screen_text": "Instant Iterations",
@@ -100,14 +100,14 @@
     },
     {
       "id": 10,
-      "narration": "In summary, Artifacts make rapid UI prototyping faster and more intuitive than ever before for creators and engineers alike.",
+      "narration": "In summary, modern AI workspaces make rapid UI prototyping faster and more intuitive than ever before for creators and engineers alike.",
       "visual_type": "card",
       "visual_query": "modern office creative teamwork",
       "on_screen_text": "Final Takeaway",
       "bullets": [
         "Test ideas in minutes",
         "Export clean React code",
-        "Available on free & Pro tiers"
+        "Free and accessible"
       ],
       "source_ids": [1]
     }
@@ -115,7 +115,7 @@
   "chapters": [
     {
       "start_scene_id": 1,
-      "title": "Introduction to Artifacts"
+      "title": "Introduction to AI Workspaces"
     },
     {
       "start_scene_id": 4,
@@ -126,18 +126,16 @@
       "title": "Limitations & Summary"
     }
   ],
-  "description": "Discover how to use Claude 3.5 Sonnet Artifacts to rapidly prototype and test interactive web tools, diagrams, and components in real time.\n\nIn this tutorial, we break down what Artifacts are, how to enable them on your account, and walk through a step-by-step example building an interactive web tool directly in the Claude workspace.\n\nSources:\n- Anthropic Official Announcement (https://anthropic.com)\n\nDisclosures: Voiceover synthesized using AI speech technology. Content grounded in official public announcements.",
+  "description": "Discover how to use modern AI coding assistants to rapidly prototype and test interactive web tools, diagrams, and components in real time.\n\nIn this tutorial, we break down what interactive AI workspaces are, how to set them up, and walk through a step-by-step example building an interactive web tool directly in your browser.\n\nSources:\n- Official Web Standards & AI Tool Announcements\n\nDisclosures: Voiceover synthesized using AI speech technology. Content grounded in verified public documentation.",
   "tags": [
-    "claude 3.5 sonnet",
-    "anthropic claude",
-    "claude artifacts",
     "ai tools tutorial",
     "ai coding assistant",
     "interactive web apps",
     "generative ai",
-    "ai productivity"
+    "ai productivity",
+    "web development ai"
   ],
-  "thumbnail_text": "CLAUDE ARTIFACTS GUIDE",
+  "thumbnail_text": "BUILD APPS WITH AI",
   "thumbnail_visual_query": "ai robot building holographic web application",
   "disclosures": {
     "ai_voice": true,

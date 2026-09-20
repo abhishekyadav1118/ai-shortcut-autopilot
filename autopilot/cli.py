@@ -110,7 +110,7 @@ def run_doctor() -> int:
                 )
             )
 
-    # 4. Music Assets
+    # 4. Music Assets (Optional)
     music_dir = Path("assets/music")
     music_files = (
         list(music_dir.glob("*.mp3")) + list(music_dir.glob("*.wav")) if music_dir.exists() else []
@@ -127,9 +127,8 @@ def run_doctor() -> int:
         checks.append(
             DoctorCheckResult(
                 name="Background Music",
-                status="WARNING",
-                message=f"No .mp3 or .wav files found in {music_dir}",
-                fix_hint="Download royalty-free tracks into assets/music/ (see assets/music/LICENSES.md)",
+                status="OK",
+                message="No music files in assets/music/ (optional, will render voice-only)",
             )
         )
 

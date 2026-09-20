@@ -22,11 +22,11 @@ evergreen_topics:
     source_summary: "Systematic review of Chain-of-Thought, Few-Shot prompting, Role-Task-Constraint framing, and self-consistency techniques."
 
   - id: "evergreen-004"
-    title: "Claude 3.5 Sonnet vs GPT-4o: Which AI is Actually Better for Daily Work?"
+    title: "Leading AI Assistants Compared: Which AI is Actually Better for Daily Work?"
     format: "tool_comparison"
-    target_keyword: "claude vs gpt-4o"
-    angle: "Real-world benchmark comparison testing coding, writing, reasoning, and multimodal document handling."
-    source_summary: "Side-by-side practical breakdown of artifact handling, token context windows, coding speed, and reasoning strengths."
+    target_keyword: "best ai assistants comparison"
+    angle: "Real-world benchmark comparison testing coding, writing, reasoning, and multimodal document handling across frontier AI tools."
+    source_summary: "Side-by-side practical breakdown of artifact handling, token context windows, coding speed, and reasoning strengths across modern frontier AI assistants."
 
   - id: "evergreen-005"
     title: "Top 7 Open Source AI Video Generators You Can Test Today"
