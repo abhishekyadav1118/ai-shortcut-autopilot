@@ -16,6 +16,7 @@ import socket
 import sys
 import time
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -68,6 +69,7 @@ def validate_upload_inputs(
     tags: list[str] | None = None,
     subtitles_path: Path | str | None = None,
     privacy_status: str = "private",
+    publish_at: str | None = None,
 ) -> None:
     """Validate all video upload inputs before contacting the YouTube API.
 
@@ -121,6 +123,25 @@ def validate_upload_inputs(
         raise ValueError(
             f"Invalid privacy_status: {privacy_status!r}. Must be one of {valid_statuses}."
         )
+
+    # 7. Scheduled publish_at validation
+    if publish_at is not None:
+        try:
+            pub_clean = publish_at.replace("Z", "+00:00")
+            pub_dt = datetime.fromisoformat(pub_clean)
+            if pub_dt.tzinfo is None:
+                pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+            now_utc = datetime.now(timezone.utc)
+            if pub_dt <= now_utc:
+                raise ValueError(
+                    f"Scheduled publish_at time must be in the future: {publish_at} <= {now_utc.isoformat()}"
+                )
+        except (ValueError, TypeError) as e:
+            if "must be in the future" in str(e):
+                raise
+            raise ValueError(
+                f"Invalid publish_at timestamp format: {publish_at!r}. Must be valid ISO 8601 UTC."
+            ) from e
 
 
 def get_authenticated_service(credentials: Any | None = None) -> Resource:
@@ -321,6 +342,7 @@ def upload_video(
     tags: list[str] | None = None,
     subtitles_path: Path | str | None = None,
     privacy_status: str = "private",
+    publish_at: str | None = None,
     category_id: str = "28",
     made_for_kids: bool = False,
     language: str = "en",
@@ -330,10 +352,14 @@ def upload_video(
     """Upload a video and optional subtitles to YouTube.
 
     Default privacy is PRIVATE. Default language is 'en'.
+    If publish_at is set, privacy_status is overridden to 'private' and publishAt is sent in status.
     If dry_run is True, validates all inputs and returns without contacting the API.
     """
     if tags is None:
         tags = []
+
+    if publish_at:
+        privacy_status = "private"
 
     # 1. Validate inputs unconditionally
     validate_upload_inputs(
@@ -343,17 +369,19 @@ def upload_video(
         tags=tags,
         subtitles_path=subtitles_path,
         privacy_status=privacy_status,
+        publish_at=publish_at,
     )
 
     # 2. Dry-run early exit
     if dry_run:
         logger.info("[DRY-RUN] Inputs validated successfully. Skipping API upload.")
         logger.info(
-            "[DRY-RUN] Video: %s | Title: %s | Privacy: %s | Language: %s",
+            "[DRY-RUN] Video: %s | Title: %s | Privacy: %s | Language: %s | PublishAt: %s",
             Path(video_path).name,
             title,
             privacy_status,
             language,
+            publish_at,
         )
         fake_id = "dry_run_sample_id_123"
         return UploadResult(
@@ -369,6 +397,17 @@ def upload_video(
     youtube = get_authenticated_service(credentials=credentials)
 
     # 4. Prepare upload metadata
+    status_body: dict[str, Any] = {
+        "privacyStatus": privacy_status.lower(),
+        "selfDeclaredMadeForKids": made_for_kids,
+    }
+    if publish_at:
+        pub_clean = publish_at.replace("Z", "+00:00")
+        pub_dt = datetime.fromisoformat(pub_clean)
+        if pub_dt.tzinfo is None:
+            pub_dt = pub_dt.replace(tzinfo=timezone.utc)
+        status_body["publishAt"] = pub_dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
     body = {
         "snippet": {
             "title": title.strip(),
@@ -378,10 +417,7 @@ def upload_video(
             "defaultLanguage": language,
             "defaultAudioLanguage": language,
         },
-        "status": {
-            "privacyStatus": privacy_status.lower(),
-            "selfDeclaredMadeForKids": made_for_kids,
-        },
+        "status": status_body,
     }
 
     # Resumable chunk size: 4MB
@@ -487,6 +523,12 @@ def main() -> None:
         help="Privacy status (default: private)",
     )
     parser.add_argument(
+        "--publish-at",
+        type=str,
+        default=None,
+        help="ISO 8601 UTC timestamp for scheduled publishing (e.g. 2026-10-01T12:00:00Z)",
+    )
+    parser.add_argument(
         "--language",
         type=str,
         default="en",
@@ -507,6 +549,7 @@ def main() -> None:
         tags=args.tags,
         subtitles_path=args.subtitles,
         privacy_status=args.privacy,
+        publish_at=args.publish_at,
         language=args.language,
         dry_run=args.dry_run,
     )

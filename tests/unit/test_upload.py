@@ -422,3 +422,74 @@ def test_get_authenticated_service_from_env_token_file(monkeypatch, tmp_path):
         )
         mock_build.assert_called_once()
 
+
+def test_validate_upload_inputs_invalid_publish_at_format(dummy_video):
+    """Raises ValueError if publish_at is not a valid ISO 8601 string."""
+    with pytest.raises(ValueError, match="Invalid publish_at timestamp format"):
+        validate_upload_inputs(
+            video_path=dummy_video,
+            title="Valid Title",
+            description="Valid Description",
+            publish_at="invalid-date-string",
+        )
+
+
+def test_validate_upload_inputs_past_publish_at(dummy_video):
+    """Raises ValueError if publish_at timestamp is in the past."""
+    with pytest.raises(ValueError, match="Scheduled publish_at time must be in the future"):
+        validate_upload_inputs(
+            video_path=dummy_video,
+            title="Valid Title",
+            description="Valid Description",
+            publish_at="2020-01-01T00:00:00Z",
+        )
+
+
+def test_upload_video_scheduled_publishing_success(dummy_video):
+    """Uploads with status.publishAt and forces privacyStatus to private when publish_at is set."""
+    mock_youtube = MagicMock()
+    mock_insert = MagicMock()
+    mock_request = MagicMock()
+    mock_request.next_chunk.return_value = (None, {"id": "sch123"})
+    mock_insert.return_value = mock_request
+    mock_youtube.videos().insert = mock_insert
+
+    future_iso = "2028-12-31T23:59:59Z"
+
+    with patch("autopilot.upload.youtube.get_authenticated_service", return_value=mock_youtube):
+        res = upload_video(
+            video_path=dummy_video,
+            title="Scheduled Video",
+            description="Desc",
+            publish_at=future_iso,
+            privacy_status="public",  # should be forced to private
+        )
+
+    assert res.success is True
+    assert res.video_id == "sch123"
+    assert res.privacy_status == "private"
+
+    mock_insert.assert_called_once()
+    body_sent = mock_insert.call_args.kwargs["body"]
+    assert body_sent["status"]["privacyStatus"] == "private"
+    assert body_sent["status"]["publishAt"] == future_iso
+
+
+def test_upload_video_scheduled_publishing_dry_run(dummy_video):
+    """Scheduled upload in dry-run mode validates future time without calling API."""
+    future_iso = "2028-12-31T23:59:59Z"
+    with patch("autopilot.upload.youtube.get_authenticated_service") as mock_auth:
+        res = upload_video(
+            video_path=dummy_video,
+            title="Scheduled Video Dry Run",
+            description="Desc",
+            publish_at=future_iso,
+            dry_run=True,
+        )
+
+    assert res.success is True
+    assert res.dry_run is True
+    assert res.privacy_status == "private"
+    mock_auth.assert_not_called()
+
+
