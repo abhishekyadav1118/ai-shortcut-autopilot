@@ -6,7 +6,7 @@ from pathlib import Path
 from autopilot.config import AppSettings
 from autopilot.llm.base import LLMProvider
 from autopilot.models import FactCheckResult, Script, Topic
-from autopilot.script.factcheck import run_factcheck_pass
+from autopilot.script.factcheck import FactCheckUnverifiedError, run_factcheck_pass
 from autopilot.script.validate import ScriptValidationError, validate_script
 from autopilot.state import get_past_titles
 from autopilot.utils.logging import get_logger
@@ -59,11 +59,16 @@ def generate_and_validate_script(
     prompt_path: Path | str = "prompts/script.md",
     factcheck_prompt_path: Path | str = "prompts/factcheck.md",
     max_regenerations: int | None = None,
-    enforce_full_length: bool = True,
+    enforce_full_length: bool = True,  # DEFAULT TRUE — always enforced in real pipeline
 ) -> tuple[Script, FactCheckResult]:
     """
-    Generate a grounded script from topic, pass it through fact-checking,
-    and validate against all quality gates. Retries up to max_regenerations on failure.
+    Generate a grounded script from topic, run fact-checking, and validate quality gates.
+
+    enforce_full_length is True by default.  Only set False in unit tests that use a
+    small fixture.  The real pipeline (cli.py run command) never overrides this.
+
+    FactCheckUnverifiedError propagates immediately without consuming a regeneration
+    slot — the script is halted before any upload.
     """
     if max_regenerations is None:
         max_regenerations = settings.quality.max_regenerations
@@ -72,13 +77,17 @@ def generate_and_validate_script(
     last_error: Exception | None = None
 
     for attempt in range(max_regenerations + 1):
-        logger.info("Script generation attempt %d / %d for topic '%s'", attempt + 1, max_regenerations + 1, topic.title)
+        logger.info(
+            "Script generation attempt %d / %d for topic '%s'",
+            attempt + 1, max_regenerations + 1, topic.title,
+        )
 
         try:
             # 1. LLM Generation
             raw_script_dict = llm.generate_json(prompt)
 
-            # 2. Fact-Checking Pass
+            # 2. Fact-Checking Pass (fails closed — raises FactCheckUnverifiedError on
+            #    total failure, which propagates out of the loop without retry)
             checked_dict, factcheck_result = run_factcheck_pass(
                 raw_script_dict,
                 topic,
@@ -94,14 +103,35 @@ def generate_and_validate_script(
                 enforce_full_length=enforce_full_length,
             )
 
-            logger.info("Script successfully synthesized and validated on attempt %d", attempt + 1)
+            logger.info(
+                "Script successfully synthesised and validated on attempt %d "
+                "(words=%d, scenes=%d, factcheck_ran=%s)",
+                attempt + 1,
+                sum(len(s.narration.split()) for s in validated_script.scenes),
+                len(validated_script.scenes),
+                factcheck_result.factcheck_ran,
+            )
             return validated_script, factcheck_result
+
+        except FactCheckUnverifiedError:
+            # Hard stop — do NOT retry, do NOT continue.  Let it propagate.
+            logger.error(
+                "Fact-check could not be completed for topic '%s'. "
+                "Pipeline halted — script is UNVERIFIED.",
+                topic.title,
+            )
+            raise
 
         except (ScriptValidationError, ValueError, Exception) as e:
             last_error = e
-            logger.warning("Attempt %d failed validation: %s", attempt + 1, e)
+            logger.warning("Attempt %d failed: %s", attempt + 1, e)
             if attempt < max_regenerations:
-                # Add correction feedback into prompt for next attempt
-                prompt += f"\n\nCRITICAL FIX REQUIRED: Previous attempt failed validation with error: {e}. Please correct this strictly in your next output."
+                prompt += (
+                    f"\n\nCRITICAL FIX REQUIRED: Previous attempt failed with: {e}. "
+                    "Correct this strictly in your next output."
+                )
 
-    raise RuntimeError(f"Script generation failed after {max_regenerations + 1} attempts. Last error: {last_error}")
+    raise RuntimeError(
+        f"Script generation failed after {max_regenerations + 1} attempts. "
+        f"Last error: {last_error}"
+    )

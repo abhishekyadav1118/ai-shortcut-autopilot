@@ -105,6 +105,7 @@ class FactCheckResult(BaseModel):
     claims: list[FactCheckClaim] = Field(default_factory=list)
     unsupported_count: int = 0
     corrected_script: dict[str, Any] = Field(default_factory=dict)
+    factcheck_ran: bool = False  # True only when the LLM call actually completed
 
 
 class VideoPackage(BaseModel):
