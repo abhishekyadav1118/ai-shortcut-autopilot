@@ -493,3 +493,85 @@ def test_upload_video_scheduled_publishing_dry_run(dummy_video):
     mock_auth.assert_not_called()
 
 
+def test_validate_upload_inputs_invalid_thumbnail(dummy_video, tmp_path):
+    """Raises ValueError if thumbnail file does not exist or is > 2MB."""
+    missing = tmp_path / "nonexistent.png"
+    with pytest.raises(ValueError, match="Thumbnail file not found"):
+        validate_upload_inputs(
+            video_path=dummy_video,
+            title="Title",
+            description="Desc",
+            thumbnail_path=missing,
+        )
+
+    oversized = tmp_path / "large_thumb.png"
+    with open(oversized, "wb") as f:
+        f.seek(2 * 1024 * 1024 + 100)
+        f.write(b"0")
+
+    with pytest.raises(ValueError, match="exceeds YouTube limit of 2 MB"):
+        validate_upload_inputs(
+            video_path=dummy_video,
+            title="Title",
+            description="Desc",
+            thumbnail_path=oversized,
+        )
+
+
+def test_upload_video_with_thumbnail_success(dummy_video, tmp_path):
+    """Uploads thumbnail via thumbnails().set after video upload."""
+    mock_youtube = MagicMock()
+    mock_insert = MagicMock()
+    mock_request = MagicMock()
+    mock_request.next_chunk.return_value = (None, {"id": "vid_thumb_123"})
+    mock_insert.return_value = mock_request
+    mock_youtube.videos().insert = mock_insert
+
+    mock_thumb_set = MagicMock()
+    mock_youtube.thumbnails().set = mock_thumb_set
+
+    thumb = tmp_path / "thumb.png"
+    thumb.write_bytes(b"fake_png_data")
+
+    with patch("autopilot.upload.youtube.get_authenticated_service", return_value=mock_youtube):
+        res = upload_video(
+            video_path=dummy_video,
+            title="Video with Thumb",
+            description="Desc",
+            thumbnail_path=thumb,
+        )
+
+    assert res.success is True
+    assert res.thumbnail_uploaded is True
+    mock_thumb_set.assert_called_once()
+    assert mock_thumb_set.call_args.kwargs["videoId"] == "vid_thumb_123"
+
+
+def test_upload_thumbnail_failure_logs_warning_and_continues(dummy_video, tmp_path):
+    """If thumbnail upload fails, logs warning and returns success=True with thumbnail_uploaded=False."""
+    mock_youtube = MagicMock()
+    mock_insert = MagicMock()
+    mock_request = MagicMock()
+    mock_request.next_chunk.return_value = (None, {"id": "vid_thumb_456"})
+    mock_insert.return_value = mock_request
+    mock_youtube.videos().insert = mock_insert
+
+    mock_thumb_set = MagicMock(side_effect=RuntimeError("Thumbnail API Error"))
+    mock_youtube.thumbnails().set = mock_thumb_set
+
+    thumb = tmp_path / "thumb.png"
+    thumb.write_bytes(b"fake_png_data")
+
+    with patch("autopilot.upload.youtube.get_authenticated_service", return_value=mock_youtube):
+        res = upload_video(
+            video_path=dummy_video,
+            title="Video with Failed Thumb",
+            description="Desc",
+            thumbnail_path=thumb,
+        )
+
+    assert res.success is True
+    assert res.thumbnail_uploaded is False
+
+
+

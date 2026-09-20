@@ -173,3 +173,71 @@ def render_all_cards(
 
     logger.info("Rendered %d text cards in %s", len(result), out_dir)
     return result
+
+
+THUMB_W, THUMB_H = 1280, 720
+
+
+def generate_thumbnail(
+    title: str,
+    out_path: Path | str,
+    bg_image_path: Path | str | None = None,
+    channel_name: str = "THE AI SHORTCUT",
+) -> Path:
+    """Generate a 1280x720 video thumbnail with title text, strictly under 2 MB."""
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    if bg_image_path and Path(bg_image_path).exists():
+        bg = Image.open(bg_image_path).convert("RGBA")
+        bg = bg.resize((THUMB_W, THUMB_H), Image.Resampling.LANCZOS)
+        overlay = Image.new("RGBA", (THUMB_W, THUMB_H), (10, 12, 30, 180))
+        img = Image.alpha_composite(bg, overlay).convert("RGB")
+    else:
+        img = Image.new("RGB", (THUMB_W, THUMB_H))
+        draw_temp = ImageDraw.Draw(img)
+        for y in range(THUMB_H):
+            r = int(BG_TOP[0] + (BG_BOTTOM[0] - BG_TOP[0]) * y / THUMB_H)
+            g = int(BG_TOP[1] + (BG_BOTTOM[1] - BG_TOP[1]) * y / THUMB_H)
+            b = int(BG_TOP[2] + (BG_BOTTOM[2] - BG_TOP[2]) * y / THUMB_H)
+            draw_temp.line([(0, y), (THUMB_W, y)], fill=(r, g, b))
+
+    draw = ImageDraw.Draw(img)
+    font_title = _load_font(_FONT_CANDIDATES, 54)
+    font_badge = _load_font(_FONT_CAND_REGULAR, 26)
+
+    # Top pill badge
+    badge_text = channel_name.upper()
+    badge_bbox = draw.textbbox((0, 0), badge_text, font=font_badge)
+    badge_w = badge_bbox[2] - badge_bbox[0]
+    badge_x0 = (THUMB_W - badge_w) // 2 - 20
+    badge_x1 = (THUMB_W + badge_w) // 2 + 20
+    draw.rounded_rectangle([badge_x0, 80, badge_x1, 125], radius=8, fill=ACCENT)
+    draw.text((THUMB_W // 2, 85), badge_text, font=font_badge, fill=(10, 12, 30), anchor="ma")
+
+    # Title text
+    wrapped = textwrap.fill(title, width=28)
+    lines = wrapped.splitlines()
+    line_h = 64
+    total_h = len(lines) * line_h
+    start_y = (THUMB_H - total_h) // 2 + 30
+
+    draw.multiline_text(
+        (THUMB_W // 2, start_y),
+        wrapped,
+        font=font_title,
+        fill=TITLE_COLOR,
+        anchor="ma",
+        align="center",
+        spacing=16,
+    )
+
+    img.save(out_path, format="PNG", optimize=True)
+    if out_path.stat().st_size > 2 * 1024 * 1024:
+        jpg_path = out_path.with_suffix(".jpg")
+        img.save(jpg_path, format="JPEG", quality=85)
+        out_path = jpg_path
+
+    logger.info("Generated 1280x720 thumbnail (%.2f MB) -> %s", out_path.stat().st_size / 1024 / 1024, out_path)
+    return out_path
+

@@ -67,3 +67,20 @@ def test_render_all_cards_returns_video_paths(tmp_path):
         assert "video_path" in s
         assert Path(s["video_path"]).exists()
         assert s["video_path"].endswith(".png")
+
+
+def test_generate_thumbnail_creates_1280x720_under_2mb(tmp_path):
+    """generate_thumbnail produces a 1280x720 image under 2MB."""
+    from PIL import Image
+
+    from autopilot.render.cards import THUMB_H, THUMB_W, generate_thumbnail
+
+    out = tmp_path / "thumb.png"
+    result = generate_thumbnail("Thumbnail Title", out_path=out)
+
+    assert result.exists()
+    assert result.stat().st_size < 2 * 1024 * 1024  # under 2 MB
+
+    img = Image.open(result)
+    assert img.size == (THUMB_W, THUMB_H)
+

@@ -16,7 +16,7 @@ from autopilot.config import get_settings
 from autopilot.llm import get_llm_provider
 from autopilot.models import Topic
 from autopilot.render.assemble import assemble_video
-from autopilot.render.cards import render_all_cards
+from autopilot.render.cards import generate_thumbnail, render_all_cards
 from autopilot.render.qa import RenderQAError, qa_mp4
 from autopilot.render.subtitles import generate_srt
 from autopilot.script.generate import generate_and_validate_script
@@ -109,9 +109,19 @@ def run_pipeline(
         raise RenderQAError(err_msg)
     logger.info("Step 6/7 (QA) PASSED in %.2fs", t1 - t0)
 
-    # 7. YouTube Upload
+    # 7. YouTube Upload & Thumbnail
     logger.info("--- Step 7/7: YouTube Upload ---")
     t0 = time.perf_counter()
+
+    if thumbnail_path is None:
+        first_scene_card = scenes[0].get("video_path") if scenes else None
+        thumb_file = out_path / "thumbnail.png"
+        thumbnail_path = generate_thumbnail(
+            title=script.thumbnail_text or script.title,
+            out_path=thumb_file,
+            bg_image_path=first_scene_card,
+        )
+
     upload_kwargs: dict[str, Any] = {
         "video_path": final_mp4,
         "title": script.title,
@@ -119,12 +129,11 @@ def run_pipeline(
         "tags": script.tags,
         "subtitles_path": srt_path,
         "privacy_status": privacy,
+        "thumbnail_path": thumbnail_path,
         "dry_run": dry_run,
     }
     if publish_at is not None:
         upload_kwargs["publish_at"] = publish_at
-    if thumbnail_path is not None:
-        upload_kwargs["thumbnail_path"] = thumbnail_path
 
     upload_res = upload_video(**upload_kwargs)
     t1 = time.perf_counter()

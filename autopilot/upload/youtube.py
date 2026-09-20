@@ -59,6 +59,7 @@ class UploadResult:
     privacy_status: str = "private"
     dry_run: bool = False
     caption_uploaded: bool = False
+    thumbnail_uploaded: bool = False
     error: str | None = None
 
 
@@ -70,6 +71,7 @@ def validate_upload_inputs(
     subtitles_path: Path | str | None = None,
     privacy_status: str = "private",
     publish_at: str | None = None,
+    thumbnail_path: Path | str | None = None,
 ) -> None:
     """Validate all video upload inputs before contacting the YouTube API.
 
@@ -142,6 +144,20 @@ def validate_upload_inputs(
             raise ValueError(
                 f"Invalid publish_at timestamp format: {publish_at!r}. Must be valid ISO 8601 UTC."
             ) from e
+
+    # 8. Thumbnail validation (optional)
+    if thumbnail_path is not None:
+        t_path = Path(thumbnail_path)
+        if not t_path.exists():
+            raise ValueError(f"Thumbnail file not found: {t_path}")
+        if not t_path.is_file():
+            raise ValueError(f"Thumbnail path is not a file: {t_path}")
+        if t_path.stat().st_size == 0:
+            raise ValueError(f"Thumbnail file is empty (0 bytes): {t_path}")
+        if t_path.stat().st_size > 2 * 1024 * 1024:
+            raise ValueError(
+                f"Thumbnail file size ({t_path.stat().st_size / 1024 / 1024:.2f} MB) exceeds YouTube limit of 2 MB."
+            )
 
 
 def get_authenticated_service(credentials: Any | None = None) -> Resource:
@@ -335,6 +351,44 @@ def upload_subtitles(
         return False
 
 
+def upload_thumbnail(
+    youtube: Resource,
+    video_id: str,
+    thumbnail_path: Path | str,
+) -> bool:
+    """Upload a custom thumbnail image (1280x720, < 2MB) for a YouTube video.
+
+    If thumbnail upload fails, logs a warning and returns False without raising.
+    """
+    thumb_path = Path(thumbnail_path)
+    if not thumb_path.exists():
+        logger.warning("Thumbnail file %s does not exist. Skipping thumbnail upload.", thumb_path)
+        return False
+
+    size_mb = thumb_path.stat().st_size / (1024 * 1024)
+    if size_mb > 2.0:
+        logger.warning(
+            "Thumbnail file %s exceeds YouTube 2MB limit (%.2f MB). Skipping.", thumb_path, size_mb
+        )
+        return False
+
+    ext = thumb_path.suffix.lower()
+    mimetype = "image/jpeg" if ext in (".jpg", ".jpeg") else "image/png"
+
+    try:
+        logger.info("Uploading thumbnail (%s) for video %s...", thumb_path.name, video_id)
+        media = MediaFileUpload(str(thumb_path), mimetype=mimetype)
+        youtube.thumbnails().set(
+            videoId=video_id,
+            media_body=media,
+        ).execute()
+        logger.info("Successfully uploaded thumbnail for video %s.", video_id)
+        return True
+    except Exception as e:
+        logger.warning("Failed to upload thumbnail for video %s: %s", video_id, e)
+        return False
+
+
 def upload_video(
     video_path: Path | str,
     title: str,
@@ -343,13 +397,14 @@ def upload_video(
     subtitles_path: Path | str | None = None,
     privacy_status: str = "private",
     publish_at: str | None = None,
+    thumbnail_path: Path | str | None = None,
     category_id: str = "28",
     made_for_kids: bool = False,
     language: str = "en",
     dry_run: bool = False,
     credentials: Any | None = None,
 ) -> UploadResult:
-    """Upload a video and optional subtitles to YouTube.
+    """Upload a video and optional subtitles/thumbnail to YouTube.
 
     Default privacy is PRIVATE. Default language is 'en'.
     If publish_at is set, privacy_status is overridden to 'private' and publishAt is sent in status.
@@ -370,18 +425,20 @@ def upload_video(
         subtitles_path=subtitles_path,
         privacy_status=privacy_status,
         publish_at=publish_at,
+        thumbnail_path=thumbnail_path,
     )
 
     # 2. Dry-run early exit
     if dry_run:
         logger.info("[DRY-RUN] Inputs validated successfully. Skipping API upload.")
         logger.info(
-            "[DRY-RUN] Video: %s | Title: %s | Privacy: %s | Language: %s | PublishAt: %s",
+            "[DRY-RUN] Video: %s | Title: %s | Privacy: %s | Language: %s | PublishAt: %s | Thumbnail: %s",
             Path(video_path).name,
             title,
             privacy_status,
             language,
             publish_at,
+            Path(thumbnail_path).name if thumbnail_path else None,
         )
         fake_id = "dry_run_sample_id_123"
         return UploadResult(
@@ -391,6 +448,7 @@ def upload_video(
             privacy_status=privacy_status,
             dry_run=True,
             caption_uploaded=bool(subtitles_path),
+            thumbnail_uploaded=bool(thumbnail_path),
         )
 
     # 3. Authenticate and initialize client
@@ -458,6 +516,15 @@ def upload_video(
                 name=caption_name,
             )
 
+        # 6. Upload thumbnail if provided
+        thumb_ok = False
+        if thumbnail_path is not None and video_id:
+            thumb_ok = upload_thumbnail(
+                youtube,
+                video_id,
+                thumbnail_path,
+            )
+
         return UploadResult(
             success=True,
             video_id=video_id,
@@ -465,6 +532,7 @@ def upload_video(
             privacy_status=privacy_status,
             dry_run=False,
             caption_uploaded=caption_ok,
+            thumbnail_uploaded=thumb_ok,
         )
 
     except Exception as e:
@@ -529,6 +597,12 @@ def main() -> None:
         help="ISO 8601 UTC timestamp for scheduled publishing (e.g. 2026-10-01T12:00:00Z)",
     )
     parser.add_argument(
+        "--thumbnail",
+        type=Path,
+        default=None,
+        help="Path to custom thumbnail image file",
+    )
+    parser.add_argument(
         "--language",
         type=str,
         default="en",
@@ -550,6 +624,7 @@ def main() -> None:
         subtitles_path=args.subtitles,
         privacy_status=args.privacy,
         publish_at=args.publish_at,
+        thumbnail_path=args.thumbnail,
         language=args.language,
         dry_run=args.dry_run,
     )
