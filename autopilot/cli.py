@@ -261,6 +261,12 @@ def main() -> None:
     # run command
     run_parser = subparsers.add_parser("run", help="Execute the daily automated pipeline")
     run_parser.add_argument(
+        "--topic",
+        type=str,
+        default="Daily AI Tools Update",
+        help="Topic for video generation",
+    )
+    run_parser.add_argument(
         "--mode",
         choices=["review", "auto", "package"],
         default=None,
@@ -270,6 +276,12 @@ def main() -> None:
         "--dry-run",
         action="store_true",
         help="Execute pipeline without paid/external side effects or uploads",
+    )
+    run_parser.add_argument(
+        "--privacy",
+        choices=["private", "unlisted", "public"],
+        default="private",
+        help="Privacy status for YouTube upload",
     )
     run_parser.add_argument(
         "--topic-url",
@@ -303,7 +315,12 @@ def main() -> None:
     elif args.command == "auth":
         print("OAuth flow will be initialized in Phase 3. Please run 'doctor' for diagnostics.")
     elif args.command == "run":
-        print(f"Pipeline run invoked with mode={args.mode}, dry_run={args.dry_run}. Modules load in subsequent phases.")
+        from autopilot.run import run_pipeline
+        run_pipeline(
+            topic=args.topic,
+            dry_run=args.dry_run,
+            privacy=args.privacy,
+        )
     elif args.command == "render-fixture":
         print(f"Render fixture invoked with path={args.fixture_path}.")
     else:
