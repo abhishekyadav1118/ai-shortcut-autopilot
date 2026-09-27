@@ -1,7 +1,6 @@
 """Web server implementation for AI News Video Creator UI."""
 
 import json
-import os
 import sys
 import webbrowser
 from http.server import HTTPServer, SimpleHTTPRequestHandler
