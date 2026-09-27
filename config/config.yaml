@@ -19,7 +19,7 @@ llm:
   temperature: 0.7
 tts:
   provider: "edge"
-  voice: "en-US-AndrewNeural"       # Free Microsoft Edge TTS voice
+  voice: "en-US-GuyNeural"          # Ultra-natural conversational US English male voice
   rate: "+0%"
 visuals:
   stock_provider: "pexels"

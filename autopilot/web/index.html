@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI News Video Creator — From Headlines to YouTube</title>
+  <!-- Google Fonts: Outfit & Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- Ambient Moving Glow Background -->
+  <div class="ambient-bg">
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+    <div class="glow-orb orb-3"></div>
+    <div class="particle-field" id="particles"></div>
+  </div>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo-box">
+          <div class="logo-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#818CF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 17L12 22L22 17" stroke="#6366F1" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M2 12L12 17L22 12" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="logo-text">
+            <h2>AI News Video Creator</h2>
+            <span>From Headlines to YouTube</span>
+          </div>
+        </div>
+        <button class="collapse-btn" id="collapseBtn" title="Toggle Sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M15 18l-6-6 6-6"/>
+          </svg>
+        </button>
+      </div>
+
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="dashboard">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/>
+            <rect x="14" y="14" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/>
+          </svg>
+          <span class="nav-label">Dashboard</span>
+          <span class="tooltip">Dashboard</span>
+        </button>
+        <button class="nav-item" data-tab="history">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+          <span class="nav-label">History</span>
+          <span class="tooltip">History</span>
+        </button>
+        <button class="nav-item" data-tab="analytics">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+          <span class="nav-label">Analytics</span>
+          <span class="tooltip">Analytics</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span class="nav-label">Settings</span>
+          <span class="tooltip">Settings</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="system-status-badge">
+          <span class="pulse-dot"></span>
+          <div class="status-info">
+            <span class="status-title">System Online</span>
+            <span class="status-desc">All services running smoothly</span>
+          </div>
+        </div>
+        <div class="quick-stats-card">
+          <div class="stat-header-label">Quick Stats</div>
+          <div class="stat-row">
+            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><polygon points="5 3 19 12 5 21 5 3"/></svg> Total Videos</span>
+            <strong id="sidebarTotalVideos">24</strong>
+          </div>
+          <div class="stat-row">
+            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.94-2C18.88 4 12 4 12 4s-6.88 0-8.6.46a2.78 2.78 0 0 0-1.94 2A29 29 0 0 0 1 11.75a29 29 0 0 0 .46 5.33A2.78 2.78 0 0 0 3.4 19c1.72.46 8.6.46 8.6.46s6.88 0 8.6-.46a2.78 2.78 0 0 0 1.94-2 29 29 0 0 0 .46-5.25 29 29 0 0 0-.46-5.33z"/><polygon points="9.75 15.02 15.5 11.75 9.75 8.48 9.75 15.02"/></svg> YouTube Uploads</span>
+            <strong id="sidebarUploads">22</strong>
+          </div>
+          <div class="stat-row">
+            <span><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg> Success Rate</span>
+            <strong id="sidebarSuccess">91%</strong>
+          </div>
+        </div>
+        <div class="sidebar-brand-footer">
+          <span>AI News Video Creator v1.0.0</span>
+          <span>Built with ❤️ for creators</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+      <!-- Top Header Bar -->
+      <header class="top-header">
+        <div class="search-bar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input type="text" id="globalSearchInput" placeholder="Search news, topics, or paste URL..." />
+          <kbd class="search-kbd">⌘K</kbd>
+        </div>
+
+        <div class="header-actions">
+          <button class="icon-btn notification-btn" id="notifBtn" title="Notifications">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="badge-dot">3</span>
+          </button>
+
+          <div class="user-profile">
+            <div class="avatar-circle">RK</div>
+            <div class="user-info">
+              <span class="user-name">Rohan Kumar</span>
+              <span class="user-role">Pro Plan</span>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: 2px; opacity: 0.6;"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+        </div>
+      </header>
+
+      <!-- Dashboard View -->
+      <div class="page-view active" id="dashboardPage">
+        <!-- Banner Hero -->
+        <div class="hero-banner">
+          <div class="banner-content">
+            <span class="badge-ai">AI Powered</span>
+            <h1>Create AI-Powered News Videos</h1>
+            <p>Get the latest news, generate a script, and turn it into a professional video — automatically!</p>
+          </div>
+          <div class="banner-illustration">
+            <div class="robot-glow-box">
+              <img src="assets/hero_robot.jpg" alt="AI Robot" class="hero-robot-img" />
+              <div class="flow-pill">
+                <span>News</span>
+                <span class="pill-arrow">→</span>
+                <span>Script</span>
+                <span class="pill-arrow">→</span>
+                <span class="video-highlight">Video</span>
+                <span class="play-icon-glow">▶</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Dashboard Grid Layout -->
+        <div class="dashboard-grid">
+          <!-- Left Main Area (Topics + Script + Action Bar + History Table) -->
+          <div class="grid-column col-main">
+            <!-- Row 1: Side by Side (Topic Card + Script Card) -->
+            <div class="col-main-row">
+              <!-- Section 1: Select Topic / Source -->
+              <div class="card glass-card topic-card">
+                <div class="card-header">
+                  <h3><span class="step-num">1.</span> Select Topic / Source</h3>
+                  <div class="tab-pills">
+                    <button class="pill-btn active" data-source="rss">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+                      RSS / Tech News
+                    </button>
+                    <button class="pill-btn" data-source="url">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                      Custom URL
+                    </button>
+                    <button class="pill-btn" data-source="custom">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                      Custom Topic
+                    </button>
+                  </div>
+                </div>
+
+                <div class="card-body">
+                  <div class="news-list" id="newsList">
+                    <!-- Populated dynamically -->
+                  </div>
+
+                  <div class="custom-input-box" id="customInputBox">
+                    <span class="input-sublabel">Or enter your own topic / URL</span>
+                    <div class="input-action-row">
+                      <input type="text" id="customTopicInput" placeholder="e.g. Artificial Intelligence, SpaceX, Latest Tech News..." />
+                      <button class="btn btn-primary btn-sm" id="fetchTopicBtn">
+                        Fetch
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Section 2: AI Generated Script -->
+              <div class="card glass-card script-card">
+                <div class="card-header">
+                  <h3><span class="step-num">2.</span> AI Generated Script</h3>
+                  <button class="btn-icon-text" id="editScriptBtn">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                    Edit
+                  </button>
+                </div>
+
+                <div class="card-body">
+                  <div class="script-title-row">
+                    <h4 id="scriptHeadline">OpenAI unveils GPT-5 with major improvements</h4>
+                    <div class="script-meta-badges">
+                      <span class="meta-badge" id="wordCountBadge">📄 Word Count: 342</span>
+                      <span class="meta-badge" id="durationBadge">⏱ Est. Duration: 1m 42s</span>
+                    </div>
+                  </div>
+
+                  <div class="script-editor-container">
+                    <div class="typing-indicator hidden" id="aiWritingIndicator">
+                      <span class="ai-sparkle">✨ AI is writing script...</span>
+                      <div class="typing-dots">
+                        <span></span><span></span><span></span>
+                      </div>
+                    </div>
+                    <textarea id="scriptTextarea" class="script-textarea" readonly>OpenAI has officially unveiled GPT-5, the latest version of its flagship AI model, bringing significant improvements in reasoning, creativity, and multimodal capabilities. The new model is expected to deliver better performance across coding, healthcare, and education, making it more useful for both individuals and businesses.
+
+OpenAI says GPT-5 will be available to ChatGPT users in the coming weeks, with a focus on safety and reliability...</textarea>
+                  </div>
+
+                  <div class="script-footer">
+                    <div class="script-approval-status" id="approvalStatus">
+                      <span class="status-check-circle">✓</span>
+                      <span>Script Approved</span>
+                    </div>
+
+                    <div class="script-actions">
+                      <button class="btn btn-secondary btn-sm" id="regenScriptBtn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+                        Regenerate Script
+                      </button>
+                      <button class="btn btn-emerald btn-sm" id="approveScriptBtn">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                        Approve Script
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 2: Action Control Bar -->
+            <div class="action-bar-card glass-card">
+              <div class="mode-selector">
+                <span class="mode-label">Mode</span>
+                <div class="select-wrapper">
+                  <select id="publishModeSelect" class="custom-select">
+                    <option value="review">⚡ Review (User approves each stage)</option>
+                    <option value="auto">🤖 Auto (Scheduled Public)</option>
+                    <option value="package">📦 Package (Save locally only)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button class="btn btn-hero-generate" id="generateVideoBtn">
+                <div class="btn-glow-layer"></div>
+                <span class="rocket-icon">🚀</span>
+                <span class="btn-text">Generate Video</span>
+              </button>
+
+              <button class="btn btn-secondary btn-health" id="checkHealthBtn">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Check System Health
+              </button>
+            </div>
+
+            <!-- Row 3: Video History Table Card -->
+            <div class="card glass-card history-section-card">
+              <div class="card-header">
+                <h3>Video History</h3>
+                <div class="history-controls">
+                  <div class="table-search-box">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    <input type="text" id="historySearch" placeholder="Search videos..." class="table-search" />
+                  </div>
+                  <select id="historyFilterStatus" class="custom-select select-sm">
+                    <option value="all">All Status</option>
+                    <option value="uploaded">Uploaded</option>
+                    <option value="processing">Processing</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                  <select id="historyFilterMode" class="custom-select select-sm">
+                    <option value="all">All Modes</option>
+                    <option value="auto">Auto</option>
+                    <option value="review">Review</option>
+                    <option value="package">Package</option>
+                  </select>
+                  <div class="date-picker-chip">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Sep 20 - Sep 28
+                  </div>
+                </div>
+              </div>
+
+              <div class="card-body p-0">
+                <div class="table-responsive">
+                  <table class="history-table">
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Topic</th>
+                        <th>Mode</th>
+                        <th>Created At</th>
+                        <th>Status</th>
+                        <th>YouTube Link</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                      <tr class="table-row-item">
+                        <td>1</td>
+                        <td class="font-medium">Google CC AI Agent: How It Runs...</td>
+                        <td><span class="mode-badge review">Review</span></td>
+                        <td>Sep 27, 06:32 PM</td>
+                        <td><span class="status-badge uploaded"><span class="badge-dot-green">●</span> Uploaded</span></td>
+                        <td><a href="https://youtu.be/gwonfViPuB8" target="_blank" class="yt-link">youtu.be/gwonfViPuB8</a></td>
+                        <td class="action-cell">
+                          <button class="action-btn" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
+                          <button class="action-btn" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                          <button class="action-btn danger" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </td>
+                      </tr>
+                      <tr class="table-row-item">
+                        <td>2</td>
+                        <td class="font-medium">Apple announces new...</td>
+                        <td><span class="mode-badge review">Review</span></td>
+                        <td>May 18, 08:12 AM</td>
+                        <td><span class="status-badge uploaded"><span class="badge-dot-green">●</span> Uploaded</span></td>
+                        <td><a href="https://youtu.be/def456" target="_blank" class="yt-link">youtu.be/def456</a></td>
+                        <td class="action-cell">
+                          <button class="action-btn" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
+                          <button class="action-btn" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                          <button class="action-btn danger" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </td>
+                      </tr>
+                      <tr class="table-row-item">
+                        <td>3</td>
+                        <td class="font-medium">Google launches Gemini...</td>
+                        <td><span class="mode-badge package">Package</span></td>
+                        <td>May 17, 06:45 PM</td>
+                        <td><span class="status-badge processing"><span class="badge-dot-orange">●</span> Processing</span></td>
+                        <td>-</td>
+                        <td class="action-cell">
+                          <button class="action-btn" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
+                          <button class="action-btn" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                          <button class="action-btn danger" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </td>
+                      </tr>
+                      <tr class="table-row-item">
+                        <td>4</td>
+                        <td class="font-medium">Meta rolls out new AI...</td>
+                        <td><span class="mode-badge auto">Auto</span></td>
+                        <td>May 17, 03:20 PM</td>
+                        <td><span class="status-badge uploaded"><span class="badge-dot-green">●</span> Uploaded</span></td>
+                        <td><a href="https://youtu.be/ghi789" target="_blank" class="yt-link">youtu.be/ghi789</a></td>
+                        <td class="action-cell">
+                          <button class="action-btn" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
+                          <button class="action-btn" title="Download"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+                          <button class="action-btn danger" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </td>
+                      </tr>
+                      <tr class="table-row-item">
+                        <td>5</td>
+                        <td class="font-medium">Microsoft introduces...</td>
+                        <td><span class="mode-badge review">Review</span></td>
+                        <td>May 16, 11:50 AM</td>
+                        <td><span class="status-badge failed"><span class="badge-dot-red">●</span> Failed</span></td>
+                        <td>-</td>
+                        <td class="action-cell">
+                          <button class="action-btn" title="View"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg></button>
+                          <button class="action-btn" title="Retry"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2v6h-6"/><path d="M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg></button>
+                          <button class="action-btn danger" title="Delete"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="table-pagination">
+                  <span>Showing 1-5 of 24</span>
+                  <div class="pagination-buttons">
+                    <button class="pg-btn disabled">&lt;</button>
+                    <button class="pg-btn active">1</button>
+                    <button class="pg-btn">2</button>
+                    <button class="pg-btn">3</button>
+                    <button class="pg-btn">4</button>
+                    <button class="pg-btn">5</button>
+                    <button class="pg-btn">&gt;</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Side Column: Live Progress & Status + Media Preview + Analytics -->
+          <div class="grid-column col-side">
+            <!-- Card 1: Live Progress & Status -->
+            <div class="card glass-card pipeline-card">
+              <div class="card-header">
+                <h3>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#818CF8" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  Live Progress & Status
+                </h3>
+                <span class="status-chip running" id="pipelineStatusChip"><span class="pulse-dot-green">●</span> Running</span>
+              </div>
+
+              <div class="card-body">
+                <div class="pipeline-steps" id="pipelineSteps">
+                  <div class="step-item completed" data-step="1">
+                    <div class="step-icon"><span class="check-svg">✓</span></div>
+                    <div class="step-content">
+                      <span class="step-title">1. Topic Fetching</span>
+                    </div>
+                    <div class="step-right">
+                      <span class="step-badge completed"><span class="check-icon">✓</span> Completed</span>
+                      <span class="step-time">(2s)</span>
+                    </div>
+                  </div>
+
+                  <div class="step-item completed" data-step="2">
+                    <div class="step-icon"><span class="check-svg">✓</span></div>
+                    <div class="step-content">
+                      <span class="step-title">2. Script Writing</span>
+                    </div>
+                    <div class="step-right">
+                      <span class="step-badge completed"><span class="check-icon">✓</span> Completed</span>
+                      <span class="step-time">(8s)</span>
+                    </div>
+                  </div>
+
+                  <div class="step-item active" data-step="3">
+                    <div class="step-icon">
+                      <span class="audio-bars-icon">🎙️</span>
+                    </div>
+                    <div class="step-content">
+                      <span class="step-title">3. Voice Over</span>
+                    </div>
+                    <div class="step-right">
+                      <span class="step-badge active">In Progress...</span>
+                      <span class="step-time">(12s)</span>
+                    </div>
+                  </div>
+
+                  <div class="step-item pending" data-step="4">
+                    <div class="step-icon"><span class="circle-outline">⭕</span></div>
+                    <div class="step-content">
+                      <span class="step-title">4. Video Rendering</span>
+                    </div>
+                    <div class="step-right">
+                      <span class="step-badge pending">Pending</span>
+                    </div>
+                  </div>
+
+                  <div class="step-item pending" data-step="5">
+                    <div class="step-icon"><span class="yt-play-outline">▶</span></div>
+                    <div class="step-content">
+                      <span class="step-title">5. YouTube Upload</span>
+                    </div>
+                    <div class="step-right">
+                      <span class="step-badge pending">Pending</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="equalizer-box hidden" id="equalizerBox">
+                  <div class="eq-bars">
+                    <span></span><span></span><span></span><span></span><span></span>
+                  </div>
+                  <span class="eq-text">Rendering frames & audio loudnorm...</span>
+                </div>
+
+                <div class="progress-bar-container">
+                  <div class="progress-bar-track">
+                    <div class="progress-bar-fill" id="pipelineProgressFill" style="width: 60%;"></div>
+                  </div>
+                  <span class="progress-percent" id="pipelinePercentText">60%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 2: Media Preview -->
+            <div class="card glass-card preview-card">
+              <div class="card-header">
+                <h3>Media Preview</h3>
+                <div class="media-tabs">
+                  <button class="tab-btn active" data-media="video">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                    Video
+                  </button>
+                  <button class="tab-btn" data-media="subtitles">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Subtitles (.srt)
+                  </button>
+                  <button class="tab-btn" data-media="thumbnail">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Thumbnail (.jpeg)
+                  </button>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <!-- Video View -->
+                <div class="media-content active" id="videoMediaContent">
+                  <div class="preview-layout-flex">
+                    <div class="video-main-wrapper">
+                      <div class="video-player-frame">
+                        <img src="assets/sample_thumb.jpg" alt="Video Preview" class="video-poster-img" />
+                        <div class="video-play-overlay">
+                          <button class="play-btn-circle" id="playPreviewVideoBtn">▶</button>
+                        </div>
+                        <div class="video-controls-overlay">
+                          <span class="time-stamp">0:00 / 1:45</span>
+                          <div class="player-icons">
+                            <span>🔊</span><span>⚙️</span><span>⛶</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="thumb-sidebar-preview">
+                      <span class="thumb-label">Thumbnail</span>
+                      <div class="mini-thumb-card">
+                        <img src="assets/sample_thumb.jpg" alt="Mini Thumb" />
+                      </div>
+                      <div class="media-download-actions">
+                        <button class="btn btn-secondary btn-xs" id="downloadSrtBtn">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          Download SRT
+                        </button>
+                        <button class="btn btn-secondary btn-xs" id="downloadThumbBtn">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                          Download Thumbnail
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Subtitles View -->
+                <div class="media-content hidden" id="subtitlesMediaContent">
+                  <pre class="srt-viewer" id="srtText">1
+00:00:00,000 --> 00:00:03,500
+OpenAI has officially unveiled GPT-5 today.
+
+2
+00:00:03,600 --> 00:00:07,200
+Featuring major breakthroughs in AI reasoning and coding.</pre>
+                </div>
+
+                <!-- Thumbnail View -->
+                <div class="media-content hidden" id="thumbnailMediaContent">
+                  <div class="thumb-preview-box">
+                    <img src="assets/sample_thumb.jpg" alt="Thumbnail Preview" class="thumb-zoom" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Card 3: Analytics Widget -->
+            <div class="card glass-card analytics-card">
+              <div class="card-header">
+                <h3>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                  Analytics
+                </h3>
+                <div class="select-wrapper">
+                  <select class="custom-select select-xs">
+                    <option>Last 7 Days</option>
+                    <option>Last 30 Days</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="card-body">
+                <div class="analytics-metrics-grid">
+                  <div class="mini-stat-card blue">
+                    <span class="mini-stat-val">24</span>
+                    <span class="mini-stat-lbl">Total Videos</span>
+                    <span class="mini-trend up">↑ 12%</span>
+                  </div>
+                  <div class="mini-stat-card cyan">
+                    <span class="mini-stat-val">22</span>
+                    <span class="mini-stat-lbl">YouTube Uploads</span>
+                    <span class="mini-trend up">↑ 10%</span>
+                  </div>
+                  <div class="mini-stat-card purple">
+                    <span class="mini-stat-val">91%</span>
+                    <span class="mini-stat-lbl">Success Rate</span>
+                    <span class="mini-trend up">↑ 6%</span>
+                  </div>
+                  <div class="mini-stat-card rose">
+                    <span class="mini-stat-val red-text">2</span>
+                    <span class="mini-stat-lbl">Failed</span>
+                    <span class="mini-trend down">↓ 50%</span>
+                  </div>
+                </div>
+
+                <div class="chart-section">
+                  <span class="chart-title">Videos Created — Last 7 Days</span>
+                  <div class="chart-svg-container">
+                    <svg class="line-chart-svg" viewBox="0 0 320 100">
+                      <defs>
+                        <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stop-color="#3B82F6" stop-opacity="0.5"/>
+                          <stop offset="100%" stop-color="#3B82F6" stop-opacity="0.0"/>
+                        </linearGradient>
+                      </defs>
+                      <path d="M 10 80 Q 50 75 90 60 T 170 50 T 250 40 T 310 15 L 310 95 L 10 95 Z" fill="url(#chartGrad)"/>
+                      <path d="M 10 80 Q 50 75 90 60 T 170 50 T 250 40 T 310 15" fill="none" stroke="#60A5FA" stroke-width="2.5"/>
+                      <circle cx="10" cy="80" r="3" fill="#60A5FA"/>
+                      <circle cx="90" cy="60" r="3" fill="#60A5FA"/>
+                      <circle cx="170" cy="50" r="3" fill="#60A5FA"/>
+                      <circle cx="250" cy="40" r="3" fill="#60A5FA"/>
+                      <circle cx="310" cy="15" r="4" fill="#3B82F6" stroke="#FFFFFF" stroke-width="1.5"/>
+                    </svg>
+                    <div class="chart-labels">
+                      <span>May 12</span><span>May 13</span><span>May 14</span><span>May 15</span><span>May 16</span><span>May 17</span><span>May 18</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analytics-bottom-row">
+                  <div class="donut-widget">
+                    <div class="donut-circle">
+                      <span class="donut-percent">91%</span>
+                    </div>
+                    <span class="donut-label">Upload Success</span>
+                  </div>
+
+                  <div class="mode-stats-widget">
+                    <span class="widget-heading">Videos by Mode</span>
+                    <div class="mode-stat-bars">
+                      <div class="mode-bar-row">
+                        <span class="dot-color auto"></span>
+                        <span class="mode-name">Auto</span>
+                        <span class="mode-count">12</span>
+                      </div>
+                      <div class="mode-bar-row">
+                        <span class="dot-color review"></span>
+                        <span class="mode-name">Review</span>
+                        <span class="mode-count">8</span>
+                      </div>
+                      <div class="mode-bar-row">
+                        <span class="dot-color package"></span>
+                        <span class="mode-name">Package</span>
+                        <span class="mode-count">4</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="gen-time-widget">
+                    <span class="widget-heading">Avg. Generation Time</span>
+                    <strong class="gen-time-val">1m 32s</strong>
+                    <span class="mini-trend up">↑ 18%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- History Page Tab View -->
+      <div class="page-view hidden" id="historyPage">
+        <div class="page-header">
+          <h2>Full Video History</h2>
+          <p>View all previously generated videos, logs, and YouTube publication stats.</p>
+        </div>
+        <div class="card glass-card">
+          <div class="card-body">
+            <p class="text-muted">Complete audit log of all video processing pipeline runs.</p>
+            <div id="fullHistoryContainer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Analytics Page Tab View -->
+      <div class="page-view hidden" id="analyticsPage">
+        <div class="page-header">
+          <h2>Performance & Analytics</h2>
+          <p>Detailed insights into pipeline execution metrics and YouTube publishing success rates.</p>
+        </div>
+
+        <div class="analytics-metrics-grid">
+          <div class="card glass-card stat-metric-card">
+            <span class="stat-label">Total Videos</span>
+            <div class="stat-value" id="statTotalVideos">24</div>
+            <span class="stat-trend trend-up">↑ 12% this week</span>
+          </div>
+          <div class="card glass-card stat-metric-card">
+            <span class="stat-label">YouTube Uploads</span>
+            <div class="stat-value" id="statUploads">22</div>
+            <span class="stat-trend trend-up">↑ 10% this week</span>
+          </div>
+          <div class="card glass-card stat-metric-card">
+            <span class="stat-label">Success Rate</span>
+            <div class="stat-value" id="statSuccessRate">91%</div>
+            <span class="stat-trend trend-up">↑ 6% this week</span>
+          </div>
+          <div class="card glass-card stat-metric-card">
+            <span class="stat-label">Failed Runs</span>
+            <div class="stat-value red-text" id="statFailed">2</div>
+            <span class="stat-trend trend-down">↓ 50% decrease</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings Page Tab View -->
+      <div class="page-view hidden" id="settingsPage">
+        <div class="page-header">
+          <h2>System Settings & API Keys</h2>
+          <p>Manage your LLM credentials, YouTube OAuth config, and local rendering parameters.</p>
+        </div>
+
+        <div class="card glass-card settings-card">
+          <div class="card-body">
+            <form id="settingsForm" class="settings-form">
+              <div class="form-group">
+                <label for="inputLlmKey">LLM API Key (Google AI Studio / Anthropic):</label>
+                <input type="password" id="inputLlmKey" class="form-control" placeholder="AIzaSy..." value="AIzaSy..." />
+              </div>
+              <div class="form-group">
+                <label for="inputPexelsKey">Pexels Stock Video API Key (Optional):</label>
+                <input type="text" id="inputPexelsKey" class="form-control" placeholder="Enter Pexels API key..." />
+              </div>
+              <div class="form-group">
+                <label for="inputDefaultMode">Default Publish Mode:</label>
+                <select id="inputDefaultMode" class="custom-select">
+                  <option value="review">Review (Private Upload)</option>
+                  <option value="auto">Auto (Scheduled Upload)</option>
+                  <option value="package">Package (Local Only)</option>
+                </select>
+              </div>
+              <button type="button" class="btn btn-primary" id="saveSettingsBtn">
+                Save Settings
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Docked / Floating System Health Overlay Card matching Image 2 -->
+  <div class="system-health-docked-card glass-card" id="systemHealthDock">
+    <div class="health-header">
+      <div class="health-title-box">
+        <span class="health-icon-box">💚</span>
+        <div>
+          <h4>System Health</h4>
+          <span class="health-sub">Healthy — All systems operational</span>
+        </div>
+      </div>
+      <button class="dock-close-btn" id="closeHealthDock">&times;</button>
+    </div>
+
+    <div class="health-checks-grid">
+      <div class="health-item">
+        <span class="h-name">⚡ AI API</span>
+        <span class="h-status healthy">Connected ✓</span>
+      </div>
+      <div class="health-item">
+        <span class="h-name">📡 RSS Feed</span>
+        <span class="h-status healthy">Connected ✓</span>
+      </div>
+      <div class="health-item">
+        <span class="h-name">🔊 TTS / Voice</span>
+        <span class="h-status healthy">Connected ✓</span>
+      </div>
+      <div class="health-item">
+        <span class="h-name">🎬 FFmpeg</span>
+        <span class="h-status healthy">Installed ✓</span>
+      </div>
+      <div class="health-item">
+        <span class="h-name">💾 Storage</span>
+        <span class="h-status healthy">Available ✓</span>
+      </div>
+      <div class="health-item">
+        <span class="h-name">🗄️ Database</span>
+        <span class="h-status healthy">Connected ✓</span>
+      </div>
+      <div class="health-item">
+        <span class="h-name">📺 YouTube API</span>
+        <span class="h-status healthy">Connected ✓</span>
+      </div>
+    </div>
+
+    <button class="btn btn-primary btn-sm full-width" id="reRunDiagnosticsBtn">
+      Run Diagnostics Again
+    </button>
+  </div>
+
+  <!-- Floating Toast Notification at bottom right matching Image 2 -->
+  <div class="toast-container" id="toastContainer">
+    <div class="toast toast-success" id="defaultToast">
+      <span class="toast-check">✓</span>
+      <span>Video generation started successfully!</span>
+      <button class="toast-close" onclick="this.parentElement.remove()">&times;</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
