@@ -4,19 +4,34 @@
 
 ---
 
+## 🖥️ Studio Dashboard
+
+![AI News Video Creator Dashboard Demo](assets/dashboard_demo.gif)
+
+<details>
+<summary>📸 View High-Resolution Static Screenshot</summary>
+<br>
+
+![AI News Video Creator UI](assets/dashboard_preview.png)
+
+</details>
+
+---
+
 ## Table of Contents
 
-1. [What Was Built](#what-was-built)
-2. [Windows Setup](#windows-setup)
-3. [Environment Variables (.env)](#environment-variables-env)
-4. [GitHub Secrets](#github-secrets)
-5. [OAuth Login (auth command)](#oauth-login-auth-command)
-6. [Running Locally](#running-locally)
-7. [Publish Modes](#publish-modes)
-8. [Troubleshooting](#troubleshooting)
-9. [How to Re-enable Schedules](#how-to-re-enable-schedules)
-10. [How to Rotate Keys](#how-to-rotate-keys)
-11. [First Two Weeks — Daily Checklist (Review Mode)](#first-two-weeks--daily-checklist-review-mode)
+1. [Studio Dashboard](#️-studio-dashboard)
+2. [What Was Built](#what-was-built)
+3. [Windows Setup](#windows-setup)
+4. [Environment Variables (.env)](#environment-variables-env)
+5. [GitHub Secrets](#github-secrets)
+6. [OAuth Login (auth command)](#oauth-login-auth-command)
+7. [Running Locally](#running-locally)
+8. [Publish Modes](#publish-modes)
+9. [Troubleshooting](#troubleshooting)
+10. [How to Re-enable Schedules](#how-to-re-enable-schedules)
+11. [How to Rotate Keys](#how-to-rotate-keys)
+12. [First Two Weeks — Daily Checklist (Review Mode)](#first-two-weeks--daily-checklist-review-mode)
 
 ---
 
@@ -150,6 +165,9 @@ Open `token.json` in a text editor. Copy the `refresh_token` value (the long str
 ## Running Locally
 
 ```powershell
+# Launch the Web Dashboard UI in your browser (localhost:8000)
+python -m autopilot ui
+
 # Full pipeline in review mode (private upload, no publishAt)
 python -m autopilot run --mode review
 

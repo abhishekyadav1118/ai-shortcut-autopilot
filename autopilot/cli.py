@@ -354,6 +354,11 @@ def main() -> None:
         help="Path to script JSON fixture (e.g. tests/fixtures/sample_script.json)",
     )
 
+    # ui / server command
+    ui_parser = subparsers.add_parser("ui", help="Launch the Web Dashboard UI in browser")
+    ui_parser.add_argument("--port", type=int, default=8000, help="Port to run web UI server on (default 8000)")
+    ui_parser.add_argument("--no-browser", action="store_true", help="Do not open browser automatically")
+
     args = parser.parse_args()
 
     if args.command == "doctor":
@@ -373,6 +378,9 @@ def main() -> None:
         )
     elif args.command == "render-fixture":
         print(f"Render fixture invoked with path={args.fixture_path}.")
+    elif args.command in ("ui", "server"):
+        from autopilot.server import start_server
+        start_server(port=args.port, open_browser=not args.no_browser)
     else:
         parser.print_help()
 
