@@ -101,7 +101,7 @@ def _build_scene_clip(
 def _concat_clips(clip_paths: list[Path], out_mp4: Path, work_dir: Path) -> Path:
     """Concatenate scene clips using the FFmpeg concat demuxer (stream copy)."""
     concat_list = work_dir / "concat.txt"
-    lines = [f"file '{p.resolve()}'" for p in clip_paths]
+    lines = [f"file '{p.resolve().as_posix()}'" for p in clip_paths]
     concat_list.write_text("\n".join(lines), encoding="utf-8")
 
     _ffmpeg(
@@ -252,7 +252,14 @@ def assemble_video(
     clip_paths: list[Path] = []
     for s in scenes:
         clip = clips_dir / f"clip_{s['id']:03d}.mp4"
-        if not clip.exists() or clip.stat().st_size == 0:
+        audio_wav = Path(s["audio_path"])
+        # Rebuild clip if it doesn't exist, is too small, or the source WAV is newer
+        clip_stale = (
+            not clip.exists()
+            or clip.stat().st_size < 1000
+            or (audio_wav.exists() and audio_wav.stat().st_mtime > clip.stat().st_mtime)
+        )
+        if clip_stale:
             _build_scene_clip(
                 card_png=Path(s["video_path"]),
                 audio_wav=Path(s["audio_path"]),

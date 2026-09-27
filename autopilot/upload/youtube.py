@@ -16,7 +16,7 @@ import socket
 import sys
 import time
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -132,8 +132,8 @@ def validate_upload_inputs(
             pub_clean = publish_at.replace("Z", "+00:00")
             pub_dt = datetime.fromisoformat(pub_clean)
             if pub_dt.tzinfo is None:
-                pub_dt = pub_dt.replace(tzinfo=timezone.utc)
-            now_utc = datetime.now(timezone.utc)
+                pub_dt = pub_dt.replace(tzinfo=UTC)
+            now_utc = datetime.now(UTC)
             if pub_dt <= now_utc:
                 raise ValueError(
                     f"Scheduled publish_at time must be in the future: {publish_at} <= {now_utc.isoformat()}"
@@ -463,8 +463,8 @@ def upload_video(
         pub_clean = publish_at.replace("Z", "+00:00")
         pub_dt = datetime.fromisoformat(pub_clean)
         if pub_dt.tzinfo is None:
-            pub_dt = pub_dt.replace(tzinfo=timezone.utc)
-        status_body["publishAt"] = pub_dt.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+            pub_dt = pub_dt.replace(tzinfo=UTC)
+        status_body["publishAt"] = pub_dt.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     body = {
         "snippet": {

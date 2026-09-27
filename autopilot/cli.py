@@ -244,6 +244,53 @@ def run_doctor() -> int:
     return 0
 
 
+def _run_auth() -> None:
+    """Run the one-time InstalledAppFlow OAuth2 login for YouTube.
+
+    Opens a browser tab at accounts.google.com. After you approve, the token
+    is saved to token.json in the project root for subsequent headless runs.
+    """
+    from pathlib import Path
+
+    from google_auth_oauthlib.flow import InstalledAppFlow
+
+    SCOPES = [
+        "https://www.googleapis.com/auth/youtube.upload",
+        "https://www.googleapis.com/auth/youtube.force-ssl",
+    ]
+
+    secret_file = Path("client_secret.json")
+    token_file = Path("token.json")
+
+    if not secret_file.exists():
+        print(
+            "ERROR: client_secret.json not found in project root.\n"
+            "Download it from Google Cloud Console -> APIs & Services -> "
+            "Credentials -> OAuth 2.0 Client ID (Desktop app) -> Download JSON.\n"
+            "Rename the downloaded file to client_secret.json and re-run 'autopilot auth'."
+        )
+        return
+
+    print("=" * 65)
+    print(" YouTube OAuth 2.0 Login — The AI Shortcut Autopilot")
+    print("=" * 65)
+    print()
+    print("Opening your browser to accounts.google.com ...")
+    print("Sign in with the Google account that owns the YouTube channel.")
+    print("Click 'Allow' on the permissions screen.")
+    print("The browser will redirect to localhost — that is normal.")
+    print()
+
+    flow = InstalledAppFlow.from_client_secrets_file(str(secret_file), SCOPES)
+    creds = flow.run_local_server(port=0, open_browser=True)
+
+    token_file.write_text(creds.to_json(), encoding="utf-8")
+    print(f"\n[OK] Login complete. Token saved to: {token_file.resolve()}")
+    print("You will NOT need to log in again until the refresh token expires (typically ~6 months).")
+    print()
+    print("Next step: run 'python -m autopilot doctor' to verify all credentials are green.")
+
+
 def main() -> None:
     """Main CLI entrypoint."""
     parser = argparse.ArgumentParser(
@@ -313,13 +360,16 @@ def main() -> None:
         exit_code = run_doctor()
         sys.exit(exit_code)
     elif args.command == "auth":
-        print("OAuth flow will be initialized in Phase 3. Please run 'doctor' for diagnostics.")
+        _run_auth()
     elif args.command == "run":
         from autopilot.run import run_pipeline
         run_pipeline(
             topic=args.topic,
+            mode=args.mode,
             dry_run=args.dry_run,
             privacy=args.privacy,
+            topic_url=args.topic_url,
+            fixture=args.fixture,
         )
     elif args.command == "render-fixture":
         print(f"Render fixture invoked with path={args.fixture_path}.")

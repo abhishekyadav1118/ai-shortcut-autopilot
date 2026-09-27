@@ -6,6 +6,7 @@ import wave
 from pathlib import Path
 
 import edge_tts
+import yaml
 
 from autopilot.utils.logging import get_logger
 
@@ -14,6 +15,41 @@ logger = get_logger("autopilot.tts.edge")
 # Word-level timing info is available via edge-tts WordBoundary events.
 # We use it to get accurate duration rather than probing the WAV.
 _RATE_RE = re.compile(r"^[+-]\d+%$")
+
+# ── Pronunciation lexicon ─────────────────────────────────────────────────────
+
+_LEXICON_CACHE: dict[str, str] | None = None
+_LEXICON_PATH = Path("config/pronunciation.yaml")
+
+
+def _load_lexicon() -> dict[str, str]:
+    global _LEXICON_CACHE
+    if _LEXICON_CACHE is not None:
+        return _LEXICON_CACHE
+    if not _LEXICON_PATH.exists():
+        _LEXICON_CACHE = {}
+        return _LEXICON_CACHE
+    try:
+        with open(_LEXICON_PATH, encoding="utf-8") as f:
+            data = yaml.safe_load(f) or {}
+        _LEXICON_CACHE = data.get("pronunciations", {})
+    except Exception as e:
+        logger.warning("Could not load pronunciation lexicon: %s", e)
+        _LEXICON_CACHE = {}
+    return _LEXICON_CACHE
+
+
+def apply_pronunciation_lexicon(text: str) -> str:
+    """Replace known acronyms/terms with TTS-friendly phonetic equivalents.
+
+    Substitutions are word-boundary-matched to avoid replacing substrings.
+    E.g. 'API' → 'A P I', 'LLM' → 'L L M'.
+    """
+    lexicon = _load_lexicon()
+    for term, phonetic in lexicon.items():
+        pattern = r"\b" + re.escape(term) + r"\b"
+        text = re.sub(pattern, phonetic, text)
+    return text
 
 
 def _validate_rate(rate: str) -> str:
@@ -38,22 +74,26 @@ async def _synthesise_scene(
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 fh.write(chunk["data"])
-            elif chunk["type"] == "WordBoundary":
+            elif chunk["type"] in ("WordBoundary", "SentenceBoundary"):
                 # offset + duration are in 100-nanosecond ticks
-                end_ticks = chunk["offset"] + chunk["duration"]
+                end_ticks = chunk.get("offset", 0) + chunk.get("duration", 0)
                 duration_ms = max(duration_ms, end_ticks / 10_000)
 
     if not out_path.exists() or out_path.stat().st_size == 0:
         raise RuntimeError(f"TTS produced empty audio for: {text[:60]!r}")
 
-    # WordBoundary events are absent on some Edge-TTS builds — fall back to
-    # reading duration directly from the WAV header.
+    # Fall back to ffprobe or wave header if boundary events were absent
     if duration_ms == 0.0:
         try:
-            with wave.open(str(out_path), "rb") as wf:
-                duration_ms = wf.getnframes() / wf.getframerate() * 1000.0
+            from autopilot.utils.ffprobe import get_media_duration
+            duration_sec = get_media_duration(out_path)
+            duration_ms = duration_sec * 1000.0
         except Exception:
-            pass  # leave at 0; downstream will use a sensible default
+            try:
+                with wave.open(str(out_path), "rb") as wf:
+                    duration_ms = wf.getnframes() / wf.getframerate() * 1000.0
+            except Exception:
+                pass  # leave at 0; downstream will use a sensible default
 
     duration_sec = duration_ms / 1000.0
     logger.debug("TTS scene '%s...' -> %.2fs  (%s)", text[:40], duration_sec, out_path.name)
@@ -80,10 +120,12 @@ def synthesise_scenes(
         results = []
         for s in scenes:
             wav_path = out_dir / f"scene_{s['id']:03d}.wav"
-            dur = await _synthesise_scene(s["narration"], wav_path, voice, rate)
+            narration = apply_pronunciation_lexicon(s["narration"])
+            dur = await _synthesise_scene(narration, wav_path, voice, rate)
             results.append(dur)
             await asyncio.sleep(0.3)  # small pause to avoid saturating Edge-TTS endpoint
         return results
+
 
 
     durations = asyncio.run(_run_all())

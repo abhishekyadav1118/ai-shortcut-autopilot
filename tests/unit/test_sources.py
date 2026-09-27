@@ -1,5 +1,6 @@
 """Unit tests for RSS and Hacker News candidate topic sources."""
 
+from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 from autopilot.topics.sources import (
@@ -9,13 +10,27 @@ from autopilot.topics.sources import (
 
 
 def test_fetch_rss_candidates_mocked():
+    """Entry published 1 hour ago always passes the 72-hour recency gate."""
+    recent_dt = datetime.now(UTC) - timedelta(hours=1)
+    published_parsed = (
+        recent_dt.year,
+        recent_dt.month,
+        recent_dt.day,
+        recent_dt.hour,
+        recent_dt.minute,
+        recent_dt.second,
+        recent_dt.weekday(),
+        int(recent_dt.strftime("%j")),
+        0,
+    )
+
     mock_feed = MagicMock()
     mock_entry = MagicMock()
     mock_entry.title = "Anthropic Unveils Claude 3.7 Sonnet"
     mock_entry.link = "https://www.anthropic.com/news/claude-3-7"
     mock_entry.summary = "A major update with hybrid reasoning capabilities."
-    mock_entry.published = "2026-09-19T12:00:00Z"
-    mock_entry.published_parsed = (2026, 9, 19, 12, 0, 0, 4, 262, 0)
+    mock_entry.published = recent_dt.strftime("%Y-%m-%dT%H:%M:%SZ")
+    mock_entry.published_parsed = published_parsed
     mock_feed.entries = [mock_entry]
 
     with patch("feedparser.parse", return_value=mock_feed):

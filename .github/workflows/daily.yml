@@ -2,9 +2,9 @@ name: Daily YouTube Autopilot
 
 on:
   schedule:
-    # 07:00 UTC primary cron (well before 10:00 AM New York / 14:00/15:00 UTC)
+    # Primary: 07:00 UTC (well before 10:00 AM New York)
     - cron: "0 7 * * *"
-    # 09:00 UTC backup cron (exits early if already published today)
+    # Backup: 09:00 UTC (exits early if primary already ran)
     - cron: "0 9 * * *"
   workflow_dispatch:
     inputs:
@@ -18,16 +18,17 @@ on:
           - auto
           - package
       dry_run:
-        description: "Dry run (no external API side effects / uploads)"
+        description: "Dry run (no uploads or external API side effects)"
         required: false
         default: false
         type: boolean
       topic_url:
-        description: "Force specific topic URL (optional)"
+        description: "Force a specific article URL (optional)"
         required: false
         default: ""
         type: string
 
+# Prevent two pipeline runs from racing each other
 concurrency:
   group: youtube-autopilot
   cancel-in-progress: false
@@ -38,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     permissions:
-      contents: write
+      contents: write   # needed to commit state/published.json back
 
     steps:
       - name: Checkout repository
@@ -50,49 +51,60 @@ jobs:
           python-version: "3.11"
           cache: "pip"
 
-      - name: Install system dependencies (FFmpeg & Fonts)
+      - name: Install system dependencies (FFmpeg + fonts)
         run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg fonts-dejavu-core
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends \
+            ffmpeg \
+            fonts-dejavu-core \
+            fonts-liberation
+          ffmpeg -version | head -1
+          ffprobe -version | head -1
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -e .
 
       - name: Run Diagnostics (Doctor)
-        run: |
-          python -m autopilot doctor || true
+        run: python -m autopilot doctor || true
         env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          LLM_API_KEY:              ${{ secrets.LLM_API_KEY }}
+          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY }}
+          YOUTUBE_CLIENT_ID:        ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET:    ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN:    ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:         ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Execute Autopilot Pipeline
+        id: pipeline
         run: |
           MODE="${{ inputs.mode || 'review' }}"
-          DRY_RUN="${{ inputs.dry_run == true && '--dry-run' || '' }}"
-          TOPIC_URL="${{ inputs.topic_url != '' && format('--topic-url {0}', inputs.topic_url) || '' }}"
-          python -m autopilot run --mode "$MODE" $DRY_RUN $TOPIC_URL
+          EXTRA_FLAGS=""
+          if [[ "${{ inputs.dry_run }}" == "true" ]]; then
+            EXTRA_FLAGS="$EXTRA_FLAGS --dry-run"
+          fi
+          if [[ -n "${{ inputs.topic_url }}" ]]; then
+            EXTRA_FLAGS="$EXTRA_FLAGS --topic-url ${{ inputs.topic_url }}"
+          fi
+          python -m autopilot run --mode "$MODE" $EXTRA_FLAGS
         env:
-          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
-          PEXELS_API_KEY: ${{ secrets.PEXELS_API_KEY }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          LLM_API_KEY:              ${{ secrets.LLM_API_KEY }}
+          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY }}
+          YOUTUBE_CLIENT_ID:        ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET:    ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN:    ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          TELEGRAM_BOT_TOKEN:       ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID:         ${{ secrets.TELEGRAM_CHAT_ID }}
 
       - name: Upload Output Artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: video-package-${{ github.run_id }}
-          path: out/
+          path: out/pipeline_out/
           retention-days: 7
 
       - name: Commit Updated State
@@ -101,4 +113,16 @@ jobs:
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add state/published.json
-          git diff --quiet && git diff --staged --quiet || (git commit -m "chore: update published state [skip ci]" && git push)
+          git diff --quiet && git diff --staged --quiet \
+            || (git commit -m "chore: update published state [skip ci]" && git push)
+
+      - name: Send Failure Notification
+        if: failure()
+        run: |
+          if [[ -n "${{ secrets.TELEGRAM_BOT_TOKEN }}" && -n "${{ secrets.TELEGRAM_CHAT_ID }}" ]]; then
+            MSG="🚨 *AI Autopilot FAILED* (run ${{ github.run_id }})\nCheck: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            curl -s -X POST "https://api.telegram.org/bot${{ secrets.TELEGRAM_BOT_TOKEN }}/sendMessage" \
+              -d chat_id="${{ secrets.TELEGRAM_CHAT_ID }}" \
+              -d parse_mode=Markdown \
+              -d text="$MSG" || true
+          fi

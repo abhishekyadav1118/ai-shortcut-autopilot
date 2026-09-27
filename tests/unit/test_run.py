@@ -1,14 +1,14 @@
 """Unit tests for full pipeline orchestration (autopilot.run)."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from autopilot.models import Script
 from autopilot.render.qa import QAResult, RenderQAError
-from autopilot.upload.youtube import UploadResult
 from autopilot.run import run_pipeline
+from autopilot.upload.youtube import UploadResult
 
 
 @pytest.fixture
@@ -52,23 +52,25 @@ def test_run_pipeline_success_step_order(tmp_path, mock_script):
         call_order.append("script")
         return mock_script
 
-    def mock_tts(scenes, out_dir):
+    def mock_tts(scenes, *args, **kwargs):
         call_order.append("tts")
         return scenes
 
-    def mock_cards(scenes, out_dir):
+    def mock_cards(scenes, *args, **kwargs):
         call_order.append("cards")
         return scenes
 
-    def mock_subtitles(scenes, out_path):
+    def mock_subtitles(scenes, *args, **kwargs):
         call_order.append("subtitles")
+        out_path = kwargs.get("out_path", tmp_path / "sub.srt")
         return Path(out_path)
 
-    def mock_assemble(scenes, work_dir, out_dir):
+    def mock_assemble(scenes, *args, **kwargs):
         call_order.append("assemble")
+        out_dir = kwargs.get("out_dir", tmp_path / "out")
         return Path(out_dir) / "final.mp4"
 
-    def mock_qa_func(mp4_path, scenes, tts_dir):
+    def mock_qa_func(*args, **kwargs):
         call_order.append("qa")
         return mock_qa
 
@@ -83,6 +85,7 @@ def test_run_pipeline_success_step_order(tmp_path, mock_script):
         patch("autopilot.run.synthesise_scenes", side_effect=mock_tts),
         patch("autopilot.run.render_all_cards", side_effect=mock_cards),
         patch("autopilot.run.generate_srt", side_effect=mock_subtitles),
+        patch("autopilot.run.generate_both_thumbnails", return_value=(tmp_path / "a.png", tmp_path / "b.png")),
         patch("autopilot.run.assemble_video", side_effect=mock_assemble),
         patch("autopilot.run.qa_mp4", side_effect=mock_qa_func),
         patch("autopilot.run.upload_video", side_effect=mock_upload_func),
@@ -109,6 +112,7 @@ def test_run_pipeline_stops_on_script_failure(tmp_path):
     with (
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
+        patch("autopilot.run.already_published_today", return_value=False),
         patch("autopilot.run.generate_and_validate_script", side_effect=ValueError("LLM Error")),
         patch("autopilot.run.synthesise_scenes", mock_tts),
         patch("autopilot.run.upload_video", mock_upload),
@@ -128,10 +132,12 @@ def test_run_pipeline_stops_on_qa_failure_never_uploads(tmp_path, mock_script):
     with (
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
+        patch("autopilot.run.already_published_today", return_value=False),
         patch("autopilot.run.generate_and_validate_script", return_value=mock_script),
-        patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, out_dir: scenes),
-        patch("autopilot.run.render_all_cards", side_effect=lambda scenes, out_dir: scenes),
+        patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, *args, **kwargs: scenes),
+        patch("autopilot.run.render_all_cards", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.generate_srt", return_value=tmp_path / "sub.srt"),
+        patch("autopilot.run.generate_both_thumbnails", return_value=(tmp_path / "a.png", tmp_path / "b.png")),
         patch("autopilot.run.assemble_video", return_value=tmp_path / "final.mp4"),
         patch("autopilot.run.qa_mp4", return_value=mock_qa),
         patch("autopilot.run.upload_video", mock_upload),
@@ -150,10 +156,12 @@ def test_run_pipeline_stops_on_upload_failure(tmp_path, mock_script):
     with (
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
+        patch("autopilot.run.already_published_today", return_value=False),
         patch("autopilot.run.generate_and_validate_script", return_value=mock_script),
-        patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, out_dir: scenes),
-        patch("autopilot.run.render_all_cards", side_effect=lambda scenes, out_dir: scenes),
+        patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, *args, **kwargs: scenes),
+        patch("autopilot.run.render_all_cards", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.generate_srt", return_value=tmp_path / "sub.srt"),
+        patch("autopilot.run.generate_both_thumbnails", return_value=(tmp_path / "a.png", tmp_path / "b.png")),
         patch("autopilot.run.assemble_video", return_value=tmp_path / "final.mp4"),
         patch("autopilot.run.qa_mp4", return_value=mock_qa),
         patch("autopilot.run.upload_video", return_value=mock_upload),
@@ -171,9 +179,10 @@ def test_run_pipeline_passes_dry_run_flag(tmp_path, mock_script):
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
         patch("autopilot.run.generate_and_validate_script", return_value=mock_script),
-        patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, out_dir: scenes),
-        patch("autopilot.run.render_all_cards", side_effect=lambda scenes, out_dir: scenes),
+        patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, *args, **kwargs: scenes),
+        patch("autopilot.run.render_all_cards", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.generate_srt", return_value=tmp_path / "sub.srt"),
+        patch("autopilot.run.generate_both_thumbnails", return_value=(tmp_path / "a.png", tmp_path / "b.png")),
         patch("autopilot.run.assemble_video", return_value=tmp_path / "final.mp4"),
         patch("autopilot.run.qa_mp4", return_value=mock_qa),
         patch("autopilot.run.upload_video", return_value=mock_upload) as mock_upload_call,
