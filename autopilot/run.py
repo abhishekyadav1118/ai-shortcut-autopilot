@@ -119,8 +119,13 @@ def run_pipeline(
         t0 = time.perf_counter()
         topic_obj = Topic(title=topic, url=topic_url or "")
         llm = get_llm_provider(settings)
-        script = generate_and_validate_script(topic_obj, settings, llm)
-        logger.info("Step 1/9 (Script) %.2fs. Title: %s", time.perf_counter() - t0, script.title)
+        script, _factcheck = generate_and_validate_script(topic_obj, settings, llm)
+        logger.info(
+            "Step 1/9 (Script) %.2fs. Title: %s  factcheck_ran=%s",
+            time.perf_counter() - t0,
+            script.title,
+            _factcheck.factcheck_ran,
+        )
 
     scenes = [s.model_dump() for s in script.scenes]
 
@@ -192,10 +197,18 @@ def run_pipeline(
     logger.info("--- Step 7/9: QA Gate ---")
     t0 = time.perf_counter()
     total_tts_sec = sum(s.get("duration_sec", 0.0) for s in scenes)
+    # Lower-bound: never stricter than 30 s below total TTS, and at least 30 s minimum
+    # Upper-bound: total TTS + 90 s (extra headroom for music tail, faststart padding)
+    qa_min_dur = max(30.0, total_tts_sec - 60.0)
+    qa_max_dur = total_tts_sec + 90.0
+    logger.info(
+        "QA duration window: %.1fs – %.1fs (total_tts=%.1fs)",
+        qa_min_dur, qa_max_dur, total_tts_sec,
+    )
     qa_res = qa_mp4(
         final_mp4,
-        min_duration_sec=max(60.0, total_tts_sec - 60.0),
-        max_duration_sec=total_tts_sec + 60.0,
+        min_duration_sec=qa_min_dur,
+        max_duration_sec=qa_max_dur,
         scenes=scenes,
         tts_dir=work_path / "tts",
     )
@@ -254,12 +267,16 @@ def run_pipeline(
                 raise RuntimeError(f"YouTube upload failed: {upload_res.error}")
 
         except Exception as e:
-            # Handle quota / unverified project — fall back to package mode
+            # Handle quota / unverified project / auth errors — fall back to package mode
             err_str = str(e).lower()
-            if not dry_run and ("quotaexceeded" in err_str or "403" in err_str or "forbidden" in err_str):
+            is_quota = "quotaexceeded" in err_str
+            is_forbidden = "403" in err_str or "forbidden" in err_str
+            is_auth = "credentials" in err_str or "token" in err_str or "unauthorized" in err_str or "401" in err_str
+            if not dry_run and (is_quota or is_forbidden or is_auth):
                 logger.warning(
-                    "Upload blocked (quota/unverified project): %s. "
+                    "Upload blocked (%s): %s. "
                     "Falling back to package mode — assets saved in %s.",
+                    "quota" if is_quota else "auth/forbidden",
                     e, out_path,
                 )
                 resolved_mode = "package"
