@@ -70,7 +70,8 @@ jobs:
       - name: Run Diagnostics (Doctor)
         run: python -m autopilot doctor || true
         env:
-          LLM_API_KEY:              ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}
+          OPENROUTER_API_KEY:       ${{ secrets.OPENROUTER_API_KEY || secrets.LLM_API_KEY }}
+          LLM_API_KEY:              ${{ secrets.OPENROUTER_API_KEY || secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}
           GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY || secrets.LLM_API_KEY || secrets.GOOGLE_API_KEY }}
           GOOGLE_API_KEY:           ${{ secrets.GOOGLE_API_KEY || secrets.GEMINI_API_KEY || secrets.LLM_API_KEY }}
           ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
@@ -94,7 +95,8 @@ jobs:
           fi
           python -m autopilot run --mode "$MODE" $EXTRA_FLAGS
         env:
-          LLM_API_KEY:              ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}
+          OPENROUTER_API_KEY:       ${{ secrets.OPENROUTER_API_KEY || secrets.LLM_API_KEY }}
+          LLM_API_KEY:              ${{ secrets.OPENROUTER_API_KEY || secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}
           GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY || secrets.LLM_API_KEY || secrets.GOOGLE_API_KEY }}
           GOOGLE_API_KEY:           ${{ secrets.GOOGLE_API_KEY || secrets.GEMINI_API_KEY || secrets.LLM_API_KEY }}
           ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}

@@ -14,8 +14,8 @@ schedule:
   publish_tz: "America/New_York"   # Timezone-aware UTC computation handling DST
 mode: "review"                      # review | auto | package
 llm:
-  provider: "gemini"                # gemini | anthropic
-  model: "gemini-3.6-flash"         # Confirmed working model for this API key
+  provider: "openrouter"                # openrouter | gemini | anthropic
+  model: "google/gemini-2.5-flash"      # Ultra-fast and high quality on OpenRouter
   temperature: 0.7
 tts:
   provider: "edge"

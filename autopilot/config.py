@@ -29,8 +29,8 @@ class ScheduleConfig(BaseModel):
 
 
 class LLMConfig(BaseModel):
-    provider: Literal["gemini", "anthropic"] = "gemini"
-    model: str = "gemini-2.5-flash"
+    provider: Literal["gemini", "anthropic", "openrouter"] = "openrouter"
+    model: str = "google/gemini-2.5-flash"
     temperature: float = 0.7
 
 
@@ -66,6 +66,7 @@ class AppSettings(BaseSettings):
 
     # Environment variables (Secrets)
     llm_api_key: str = Field(default="", alias="LLM_API_KEY")
+    openrouter_api_key: str = Field(default="", alias="OPENROUTER_API_KEY")
     pexels_api_key: str = Field(default="", alias="PEXELS_API_KEY")
     youtube_client_id: str = Field(default="", alias="YOUTUBE_CLIENT_ID")
     youtube_client_secret: str = Field(default="", alias="YOUTUBE_CLIENT_SECRET")
@@ -91,12 +92,16 @@ class AppSettings(BaseSettings):
         if not self.llm_api_key:
             import os
             self.llm_api_key = (
-                os.getenv("LLM_API_KEY")
+                self.openrouter_api_key
+                or os.getenv("OPENROUTER_API_KEY")
+                or os.getenv("LLM_API_KEY")
                 or os.getenv("GEMINI_API_KEY")
                 or os.getenv("GOOGLE_API_KEY")
                 or os.getenv("ANTHROPIC_API_KEY")
                 or ""
             )
+        if not self.openrouter_api_key and self.llm_api_key.startswith("sk-or-"):
+            self.openrouter_api_key = self.llm_api_key
         if not self.pexels_api_key:
             import os
             self.pexels_api_key = (
