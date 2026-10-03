@@ -1,6 +1,7 @@
 """OpenRouter LLM Provider using OpenRouter Chat Completions API."""
 
 import os
+import time
 from typing import Any
 
 import httpx
@@ -73,11 +74,14 @@ class OpenRouterProvider(LLMProvider):
             payload["max_tokens"] = self.max_tokens
 
         try:
-            with httpx.Client(timeout=90.0) as client:
+            with httpx.Client(timeout=120.0) as client:
                 response = client.post(OPENROUTER_API_URL, headers=headers, json=payload)
                 response.raise_for_status()
                 data = response.json()
         except httpx.HTTPStatusError as e:
+            if e.response.status_code == 429:
+                logger.warning("OpenRouter rate-limited (429). Backing off 15s before retry...")
+                time.sleep(15.0)
             logger.error("OpenRouter API error [%d]: %s", e.response.status_code, e.response.text)
             raise ValueError(f"OpenRouter API error ({e.response.status_code}): {e.response.text}") from e
         except Exception as e:
