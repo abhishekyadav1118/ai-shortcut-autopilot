@@ -56,3 +56,17 @@ def test_openrouter_missing_api_key(monkeypatch):
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     with pytest.raises(ValueError, match="OPENROUTER_API_KEY"):
         OpenRouterProvider(api_key="")
+
+
+@respx.mock
+def test_openrouter_provider_strips_newlines_from_api_key():
+    """Verify trailing newlines or whitespace in api_key are removed to avoid header errors."""
+    respx.post(OPENROUTER_API_URL).respond(
+        status_code=200,
+        json={"choices": [{"message": {"content": '{"ok": true}'}}]},
+    )
+    provider = OpenRouterProvider(api_key="  sk-or-v1-testkey\r\n  ")
+    result = provider.generate_json("Test")
+    assert result == {"ok": True}
+    assert provider.api_key == "sk-or-v1-testkey"
+

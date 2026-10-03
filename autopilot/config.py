@@ -100,8 +100,11 @@ class AppSettings(BaseSettings):
                 or os.getenv("ANTHROPIC_API_KEY")
                 or ""
             )
+        self.llm_api_key = "".join(self.llm_api_key.split())
         if not self.openrouter_api_key and self.llm_api_key.startswith("sk-or-"):
             self.openrouter_api_key = self.llm_api_key
+        if self.openrouter_api_key:
+            self.openrouter_api_key = "".join(self.openrouter_api_key.split())
         if not self.pexels_api_key:
             import os
             self.pexels_api_key = (
@@ -109,6 +112,8 @@ class AppSettings(BaseSettings):
                 or os.getenv("PEXELS_KEY")
                 or ""
             )
+        if self.pexels_api_key:
+            self.pexels_api_key = "".join(self.pexels_api_key.split())
         return self
 
 

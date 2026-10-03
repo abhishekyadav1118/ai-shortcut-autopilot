@@ -26,12 +26,13 @@ class OpenRouterProvider(LLMProvider):
         temperature: float = 0.7,
         max_tokens: int = 4096,
     ):
-        self.api_key = (
+        raw_key = (
             api_key
             or os.getenv("OPENROUTER_API_KEY")
             or os.getenv("LLM_API_KEY")
             or ""
         )
+        self.api_key = "".join(raw_key.split())  # removes all whitespace, newlines, tabs, and carriage returns
         if not self.api_key:
             raise ValueError(
                 "OPENROUTER_API_KEY (or LLM_API_KEY) is required for OpenRouterProvider.\n"
@@ -45,8 +46,9 @@ class OpenRouterProvider(LLMProvider):
     @with_retry(max_attempts=3, min_wait=2.0, max_wait=10.0)
     def generate_json(self, prompt: str, schema_model: type | None = None) -> dict[str, Any]:
         """Generate structured JSON response adhering to prompt."""
+        clean_key = "".join(self.api_key.split())
         headers = {
-            "Authorization": f"Bearer {self.api_key}",
+            "Authorization": f"Bearer {clean_key}",
             "HTTP-Referer": "https://github.com/abhishekyadav1118/ai-shortcut-autopilot",
             "X-Title": "AI Shortcut Autopilot",
             "Content-Type": "application/json",
