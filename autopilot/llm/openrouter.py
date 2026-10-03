@@ -1,8 +1,6 @@
 """OpenRouter LLM Provider using OpenRouter Chat Completions API."""
 
-import json
 import os
-import re
 from typing import Any
 
 import httpx
@@ -88,13 +86,5 @@ class OpenRouterProvider(LLMProvider):
             raise ValueError(f"OpenRouter returned empty choices: {data}")
 
         raw_text = choices[0].get("message", {}).get("content", "") or ""
-        cleaned = raw_text.strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\n?", "", cleaned)
-            cleaned = re.sub(r"\n?```$", "", cleaned).strip()
-
-        try:
-            return json.loads(cleaned)
-        except json.JSONDecodeError as e:
-            logger.error("Failed to parse JSON response from OpenRouter: %s\nRaw output: %s", e, raw_text)
-            raise ValueError(f"OpenRouter returned invalid JSON: {e}") from e
+        from autopilot.utils.json_repair import repair_and_parse_json
+        return repair_and_parse_json(raw_text)

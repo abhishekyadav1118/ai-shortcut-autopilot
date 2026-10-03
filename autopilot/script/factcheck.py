@@ -11,8 +11,8 @@ from autopilot.utils.logging import get_logger
 
 logger = get_logger("autopilot.script.factcheck")
 
-# Retry schedule: waits in seconds between each attempt (4 retries = 5 total attempts)
-_FACTCHECK_RETRY_WAITS = (10, 30, 60, 120)
+# Retry schedule: waits in seconds between each attempt (3 retries = 4 total attempts)
+_FACTCHECK_RETRY_WAITS = (3, 5, 10)
 
 
 class FactCheckUnverifiedError(RuntimeError):
@@ -80,12 +80,24 @@ def run_factcheck_pass(
             claims_data = response.get("claims", [])
             unsupported_count = int(response.get("unsupported_count", 0))
             corrected = response.get("corrected_script", {})
+            scene_corrections = response.get("scene_corrections", {})
+
+            # Apply corrections to script
+            import copy
+            final_script = copy.deepcopy(script_dict)
+            if corrected and isinstance(corrected, dict) and "scenes" in corrected:
+                final_script = corrected
+            elif scene_corrections and isinstance(scene_corrections, dict):
+                for scene in final_script.get("scenes", []):
+                    s_id = str(scene.get("id"))
+                    if s_id in scene_corrections:
+                        scene["narration"] = scene_corrections[s_id]
 
             claims = [
                 FactCheckClaim(
-                    text=c.get("text", ""),
-                    status=c.get("status", "SUPPORTED"),
-                    scene_id=int(c.get("scene_id", 1)),
+                    text=c.get("text", "") if isinstance(c, dict) else str(c),
+                    status=c.get("status", "SUPPORTED") if isinstance(c, dict) else "SUPPORTED",
+                    scene_id=int(c.get("scene_id", 1)) if isinstance(c, dict) else 1,
                 )
                 for c in claims_data
             ]
@@ -93,7 +105,7 @@ def run_factcheck_pass(
             result = FactCheckResult(
                 claims=claims,
                 unsupported_count=unsupported_count,
-                corrected_script=corrected or script_dict,
+                corrected_script=final_script,
                 factcheck_ran=True,
             )
 
@@ -105,7 +117,6 @@ def run_factcheck_pass(
                 unsupported_count,
             )
 
-            final_script = corrected if (corrected and "scenes" in corrected) else script_dict
             return final_script, result
 
         except Exception as exc:

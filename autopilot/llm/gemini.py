@@ -1,7 +1,5 @@
 """Gemini LLM Provider using Google Gen AI SDK."""
 
-import json
-import re
 from typing import Any
 
 from google import genai
@@ -55,14 +53,5 @@ class GeminiProvider(LLMProvider):
         )
 
         raw_text = response.text or ""
-        # Clean any accidental markdown backticks
-        cleaned = raw_text.strip()
-        if cleaned.startswith("```"):
-            cleaned = re.sub(r"^```(?:json)?\n?", "", cleaned)
-            cleaned = re.sub(r"\n?```$", "", cleaned).strip()
-
-        try:
-            return json.loads(cleaned)
-        except json.JSONDecodeError as e:
-            logger.error("Failed to parse JSON response from Gemini: %s\nRaw output: %s", e, raw_text)
-            raise ValueError(f"Gemini returned invalid JSON: {e}") from e
+        from autopilot.utils.json_repair import repair_and_parse_json
+        return repair_and_parse_json(raw_text)
