@@ -77,7 +77,7 @@ class AppSettings(BaseSettings):
     telegram_chat_id: str = Field(default="", alias="TELEGRAM_CHAT_ID")
 
     # Mode and sub-configs
-    mode: Literal["review", "auto", "package"] = "review"
+    mode: Literal["review", "auto", "package"] = "auto"
     channel: ChannelConfig = Field(default_factory=ChannelConfig)
     video: VideoConfig = Field(default_factory=VideoConfig)
     schedule: ScheduleConfig = Field(default_factory=ScheduleConfig)

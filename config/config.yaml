@@ -12,7 +12,7 @@ video:
 schedule:
   publish_local_time: "10:00"       # 10:00 AM New York (EST) / 7:00 AM Silicon Valley (PST) / 7:30 PM India (IST)
   publish_tz: "America/New_York"   # Timezone-aware UTC computation handling DST
-mode: "review"                      # review | auto | package
+mode: "auto"                        # review | auto | package
 llm:
   provider: "openrouter"                   # openrouter | gemini | anthropic
   model: "qwen/qwen3.8-27b:free"           # FREE model on OpenRouter — no credits needed
