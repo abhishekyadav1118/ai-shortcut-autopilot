@@ -70,8 +70,11 @@ jobs:
       - name: Run Diagnostics (Doctor)
         run: python -m autopilot doctor || true
         env:
-          LLM_API_KEY:              ${{ secrets.LLM_API_KEY }}
-          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY }}
+          LLM_API_KEY:              ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}
+          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY || secrets.LLM_API_KEY || secrets.GOOGLE_API_KEY }}
+          GOOGLE_API_KEY:           ${{ secrets.GOOGLE_API_KEY || secrets.GEMINI_API_KEY || secrets.LLM_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY || secrets.PEXELS_KEY }}
           YOUTUBE_CLIENT_ID:        ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET:    ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN:    ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
@@ -91,8 +94,11 @@ jobs:
           fi
           python -m autopilot run --mode "$MODE" $EXTRA_FLAGS
         env:
-          LLM_API_KEY:              ${{ secrets.LLM_API_KEY }}
-          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY }}
+          LLM_API_KEY:              ${{ secrets.LLM_API_KEY || secrets.GEMINI_API_KEY || secrets.GOOGLE_API_KEY }}
+          GEMINI_API_KEY:           ${{ secrets.GEMINI_API_KEY || secrets.LLM_API_KEY || secrets.GOOGLE_API_KEY }}
+          GOOGLE_API_KEY:           ${{ secrets.GOOGLE_API_KEY || secrets.GEMINI_API_KEY || secrets.LLM_API_KEY }}
+          ANTHROPIC_API_KEY:        ${{ secrets.ANTHROPIC_API_KEY }}
+          PEXELS_API_KEY:           ${{ secrets.PEXELS_API_KEY || secrets.PEXELS_KEY }}
           YOUTUBE_CLIENT_ID:        ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET:    ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN:    ${{ secrets.YOUTUBE_REFRESH_TOKEN }}

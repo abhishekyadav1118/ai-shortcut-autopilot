@@ -19,8 +19,20 @@ class AnthropicProvider(LLMProvider):
     def __init__(
         self, api_key: str, model: str = "claude-3-5-sonnet-20241022", temperature: float = 0.7
     ):
+        import os
+        api_key = (
+            api_key
+            or os.getenv("LLM_API_KEY")
+            or os.getenv("ANTHROPIC_API_KEY")
+            or ""
+        )
         if not api_key:
-            raise ValueError("LLM_API_KEY is required for AnthropicProvider")
+            raise ValueError(
+                "LLM_API_KEY is required for AnthropicProvider. "
+                "In GitHub Actions: Please configure 'LLM_API_KEY' (or 'ANTHROPIC_API_KEY') in your GitHub repository secrets "
+                "(Settings -> Secrets and variables -> Actions -> Repository secrets). "
+                "Locally: Add LLM_API_KEY to your .env file."
+            )
         self.api_key = api_key
         self.model = model
         self.temperature = temperature

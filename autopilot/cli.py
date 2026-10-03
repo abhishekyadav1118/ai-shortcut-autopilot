@@ -1,6 +1,7 @@
 """Command Line Interface for ai-tools-yt-autopilot."""
 
 import argparse
+import os
 import shutil
 import sys
 from pathlib import Path
@@ -145,12 +146,19 @@ def run_doctor() -> int:
             )
         )
     else:
+        in_ci = os.getenv("GITHUB_ACTIONS") == "true"
+        fix_hint = (
+            "Add 'LLM_API_KEY' (or 'GEMINI_API_KEY') to GitHub Repository Secrets: "
+            "Settings -> Secrets and variables -> Actions -> New repository secret"
+            if in_ci
+            else "Get a free Gemini API key from Google AI Studio and add LLM_API_KEY to your .env file"
+        )
         checks.append(
             DoctorCheckResult(
                 name="LLM API Key (LLM_API_KEY)",
-                status="WARNING",
-                message="Not set in environment or .env",
-                fix_hint="Get a free Gemini API key from Google AI Studio or Anthropic and add to .env",
+                status="ERROR" if in_ci else "WARNING",
+                message="Not set in environment or repository secrets",
+                fix_hint=fix_hint,
             )
         )
 

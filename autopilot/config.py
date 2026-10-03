@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Literal
 
 import yaml
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -85,6 +85,26 @@ class AppSettings(BaseSettings):
     visuals: VisualsConfig = Field(default_factory=VisualsConfig)
     music: MusicConfig = Field(default_factory=MusicConfig)
     quality: QualityConfig = Field(default_factory=QualityConfig)
+
+    @model_validator(mode="after")
+    def resolve_environment_fallbacks(self) -> "AppSettings":
+        if not self.llm_api_key:
+            import os
+            self.llm_api_key = (
+                os.getenv("LLM_API_KEY")
+                or os.getenv("GEMINI_API_KEY")
+                or os.getenv("GOOGLE_API_KEY")
+                or os.getenv("ANTHROPIC_API_KEY")
+                or ""
+            )
+        if not self.pexels_api_key:
+            import os
+            self.pexels_api_key = (
+                os.getenv("PEXELS_API_KEY")
+                or os.getenv("PEXELS_KEY")
+                or ""
+            )
+        return self
 
 
 def load_yaml_config(path: Path | str | None = None) -> dict[str, Any]:

@@ -18,8 +18,21 @@ class GeminiProvider(LLMProvider):
     """Gemini LLM provider using the modern google.genai SDK."""
 
     def __init__(self, api_key: str, model: str = "gemini-3.6-flash", temperature: float = 0.7):
+        import os
+        api_key = (
+            api_key
+            or os.getenv("LLM_API_KEY")
+            or os.getenv("GEMINI_API_KEY")
+            or os.getenv("GOOGLE_API_KEY")
+            or ""
+        )
         if not api_key:
-            raise ValueError("LLM_API_KEY is required for GeminiProvider")
+            raise ValueError(
+                "LLM_API_KEY is required for GeminiProvider. "
+                "In GitHub Actions: Please configure 'LLM_API_KEY' (or 'GEMINI_API_KEY') in your GitHub repository secrets "
+                "(Settings -> Secrets and variables -> Actions -> Repository secrets). "
+                "Locally: Add LLM_API_KEY to your .env file."
+            )
         self.api_key = api_key
         self.model = model
         self.temperature = temperature

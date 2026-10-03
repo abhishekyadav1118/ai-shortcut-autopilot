@@ -50,7 +50,7 @@ def test_run_pipeline_success_step_order(tmp_path, mock_script):
 
     def mock_gen_script(*args, **kwargs):
         call_order.append("script")
-        return mock_script
+        return mock_script, MagicMock(factcheck_ran=True)
 
     def mock_tts(scenes, *args, **kwargs):
         call_order.append("tts")
@@ -133,7 +133,7 @@ def test_run_pipeline_stops_on_qa_failure_never_uploads(tmp_path, mock_script):
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
         patch("autopilot.run.already_published_today", return_value=False),
-        patch("autopilot.run.generate_and_validate_script", return_value=mock_script),
+        patch("autopilot.run.generate_and_validate_script", return_value=(mock_script, MagicMock(factcheck_ran=True))),
         patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.render_all_cards", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.generate_srt", return_value=tmp_path / "sub.srt"),
@@ -157,7 +157,7 @@ def test_run_pipeline_stops_on_upload_failure(tmp_path, mock_script):
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
         patch("autopilot.run.already_published_today", return_value=False),
-        patch("autopilot.run.generate_and_validate_script", return_value=mock_script),
+        patch("autopilot.run.generate_and_validate_script", return_value=(mock_script, MagicMock(factcheck_ran=True))),
         patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.render_all_cards", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.generate_srt", return_value=tmp_path / "sub.srt"),
@@ -178,7 +178,7 @@ def test_run_pipeline_passes_dry_run_flag(tmp_path, mock_script):
     with (
         patch("autopilot.run.get_settings"),
         patch("autopilot.run.get_llm_provider"),
-        patch("autopilot.run.generate_and_validate_script", return_value=mock_script),
+        patch("autopilot.run.generate_and_validate_script", return_value=(mock_script, MagicMock(factcheck_ran=True))),
         patch("autopilot.run.synthesise_scenes", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.render_all_cards", side_effect=lambda scenes, *args, **kwargs: scenes),
         patch("autopilot.run.generate_srt", return_value=tmp_path / "sub.srt"),
