@@ -30,7 +30,7 @@ class ScheduleConfig(BaseModel):
 
 class LLMConfig(BaseModel):
     provider: Literal["gemini", "anthropic", "openrouter"] = "openrouter"
-    model: str = "google/gemini-2.5-flash"
+    model: str = "qwen/qwen3.8-27b:free"
     temperature: float = 0.7
 
 

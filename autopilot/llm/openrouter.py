@@ -20,7 +20,7 @@ class OpenRouterProvider(LLMProvider):
     def __init__(
         self,
         api_key: str | None = None,
-        model: str = "google/gemini-2.5-flash",
+        model: str = "qwen/qwen3.8-27b:free",
         temperature: float = 0.7,
         max_tokens: int = 4096,
     ):
@@ -65,9 +65,12 @@ class OpenRouterProvider(LLMProvider):
                 {"role": "user", "content": prompt},
             ],
             "temperature": self.temperature,
-            "max_tokens": self.max_tokens,
             "response_format": {"type": "json_object"},
         }
+        # Only set max_tokens for paid models; free (:free) models don't need it
+        # and setting it triggers 402 credit errors when credits are exhausted
+        if ":free" not in self.model:
+            payload["max_tokens"] = self.max_tokens
 
         try:
             with httpx.Client(timeout=90.0) as client:
